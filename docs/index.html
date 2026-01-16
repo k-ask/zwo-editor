@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZWO editor~ワークアウトエディタ〜</title>
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="top-bar">
+            <div class="logo">
+                <span class="z-icon">Z</span> W O E D I T O R
+            </div>
+            <div class="actions">
+                <input type="file" id="fileInput" accept=".zwo" style="display: none;">
+                <button id="loadBtn" class="btn secondary">Load .zwo</button>
+                <button id="saveBtn" class="btn primary">Save .zwo</button>
+            </div>
+        </header>
+
+        <main class="editor-layout">
+            <!-- Top: Workout Metadata -->
+            <aside class="sidebar">
+                <div class="panel">
+                    <div class="meta-group-container">
+                        <div class="form-group" style="flex: 0 0 200px;">
+                            <label>Title</label>
+                            <input type="text" id="workoutName" value="New Workout">
+                        </div>
+                        <div class="form-group" style="flex: 0 0 150px;">
+                            <label>Author</label>
+                            <input type="text" id="workoutAuthor" value="Antigravity">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" id="workoutDesc" placeholder="Description...">
+                        </div>
+                        <div class="form-group" style="flex: 0 0 200px;">
+                            <label>Tags</label>
+                            <input type="text" id="workoutTags" placeholder="FTP, Intervals...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <div class="stat-row">
+                        <span>Duration:</span>
+                        <span id="totalDuration" class="highlight">00:00:00</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center/Right: Visualization and Segments -->
+            <section class="workspace">
+                <!-- Graph Area -->
+                <div class="graph-container" style="position: relative;">
+                    <canvas id="workoutChart"></canvas>
+                    <div id="graphPopup" class="graph-popup" style="display: none;">
+                        <!-- Popup Content -->
+                    </div>
+                </div>
+
+                <!-- Segment Editor -->
+                <div class="segments-area">
+                    <div class="segments-toolbar">
+                        <h3>Segments</h3>
+                        <div class="add-buttons">
+                            <button class="btn-sm" onclick="addSegment('Warmup')">Warmup</button>
+                            <button class="btn-sm btn-z1" onclick="addSegment('SteadyState', {power: 0.50})">Z1</button>
+                            <button class="btn-sm btn-z2" onclick="addSegment('SteadyState', {power: 0.65})">Z2</button>
+                            <button class="btn-sm btn-z3" onclick="addSegment('SteadyState', {power: 0.85})">Z3</button>
+                            <button class="btn-sm btn-z4" onclick="addSegment('SteadyState', {power: 1.00})">Z4</button>
+                            <button class="btn-sm btn-z5" onclick="addSegment('SteadyState', {power: 1.15})">Z5</button>
+                            <button class="btn-sm" onclick="addSegment('IntervalsT')">Intervals</button>
+                            <button class="btn-sm" onclick="addSegment('Ramp')">Ramp</button>
+                            <button class="btn-sm" onclick="addSegment('CoolDown')">CoolDown</button>
+                            <button class="btn-sm" onclick="addSegment('FreeRide')">FreeRide</button>
+                        </div>
+                    </div>
+
+                    <div id="segmentsList" class="segments-list">
+                        <!-- Segments will be injected here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="./editor.js"></script>
+</body>
+
+</html>
