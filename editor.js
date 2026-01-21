@@ -413,64 +413,172 @@ function handleDragEnd(e) {
 
 
 // API Interactions
-async function saveWorkout() {
+// --- XML Generation and Parsing Logic (Client-Side) ---
+
+function generateZWO(workout) {
+    const meta = workout.metadata;
+    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n`;
+    xml += `<workout_file>\n`;
+    xml += `    <author>${escapeXml(meta.author)}</author>\n`;
+    xml += `    <name>${escapeXml(meta.name)}</name>\n`;
+    xml += `    <description>${escapeXml(meta.description)}</description>\n`;
+    xml += `    <sportType>${escapeXml(meta.sport_type)}</sportType>\n`;
+    xml += `    <tags>\n`;
+    meta.tags.forEach(tag => {
+        if(tag.trim()) xml += `        <tag name="${escapeXml(tag.trim())}"/>\n`;
+    });
+    xml += `    </tags>\n`;
+    xml += `    <workout>\n`;
+
+    workout.segments.forEach(s => {
+        if (s.type === 'SteadyState') {
+            xml += `        <SteadyState Duration="${s.duration}" Power="${s.power}"/>\n`;
+        } else if (s.type === 'Warmup') {
+            xml += `        <Warmup Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
+        } else if (s.type === 'CoolDown') {
+            xml += `        <CoolDown Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
+        } else if (s.type === 'Ramp') {
+            xml += `        <Ramp Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
+        } else if (s.type === 'IntervalsT') {
+            xml += `        <IntervalsT Repeat="${s.repeat}" OnDuration="${s.on_duration}" OffDuration="${s.off_duration}" OnPower="${s.on_power}" OffPower="${s.off_power}"/>\n`;
+        } else if (s.type === 'FreeRide') {
+            xml += `        <FreeRide Duration="${s.duration}"/>\n`;
+        } else if (s.type === 'MaxEffort') {
+            xml += `        <MaxEffort Duration="${s.duration}"/>\n`;
+        }
+    });
+
+    xml += `    </workout>\n`;
+    xml += `</workout_file>`;
+    return xml;
+}
+
+function parseZWO(xmlContent) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+
+    // Metadata
+    const getName = (tag) => xmlDoc.getElementsByTagName(tag)[0]?.textContent || "";
+    const metadata = {
+        name: getName("name") || "Unknown Workout",
+        author: getName("author"),
+        description: getName("description"),
+        sport_type: getName("sportType") || "bike",
+        tags: []
+    };
+
+    const tagElems = xmlDoc.getElementsByTagName("tag");
+    for (let i = 0; i < tagElems.length; i++) {
+        const name = tagElems[i].getAttribute("name");
+        if (name) metadata.tags.push(name);
+    }
+
+    // Segments
+    const segmentsList = [];
+    const workoutElem = xmlDoc.getElementsByTagName("workout")[0];
+    
+    if (workoutElem) {
+        for (let i = 0; i < workoutElem.children.length; i++) {
+            const child = workoutElem.children[i];
+            const type = child.tagName;
+            const attr = (name) => child.getAttribute(name);
+            const parseFloatOrZero = (val) => parseFloat(val) || 0;
+            const parseIntOrZero = (val) => parseInt(val) || 0;
+
+            let segment = { 
+                type: type, 
+                duration: parseIntOrZero(attr("Duration")) 
+            };
+
+            if (type === 'Warmup' || type === 'CoolDown' || type === 'Ramp') {
+                segment.power_low = parseFloatOrZero(attr("PowerLow"));
+                segment.power_high = parseFloatOrZero(attr("PowerHigh"));
+            } else if (type === 'SteadyState') {
+                segment.power = parseFloatOrZero(attr("Power"));
+            } else if (type === 'IntervalsT') {
+                segment.repeat = parseIntOrZero(attr("Repeat"));
+                segment.on_duration = parseIntOrZero(attr("OnDuration"));
+                segment.off_duration = parseIntOrZero(attr("OffDuration"));
+                segment.on_power = parseFloatOrZero(attr("OnPower"));
+                segment.off_power = parseFloatOrZero(attr("OffPower"));
+                // Calc total duration for intervals
+                segment.duration = segment.repeat * (segment.on_duration + segment.off_duration);
+            }
+            // FreeRide / MaxEffort just take duration, which is already set
+
+            segmentsList.push(segment);
+        }
+    }
+
+    return { metadata, segments: segmentsList };
+}
+
+function escapeXml(unsafe) {
+    if (!unsafe) return "";
+    return unsafe.replace(/[<>&'"]/g, function (c) {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+        }
+    });
+}
+
+
+// --- API Interactions Replacement ---
+
+function saveWorkout() {
     const workout = {
         metadata: {
-            name: document.getElementById('workoutName').value,
-            author: document.getElementById('workoutAuthor').value,
-            description: document.getElementById('workoutDesc').value,
-            tags: document.getElementById('workoutTags').value.split(',').map(t => t.trim()),
+            name: document.getElementById('workoutName').value || "My Workout",
+            author: document.getElementById('workoutAuthor').value || "Unknown",
+            description: document.getElementById('workoutDesc').value || "",
+            tags: document.getElementById('workoutTags').value.split(',').map(t => t.trim()).filter(Boolean),
             sport_type: 'bike'
         },
         segments: segments
     };
 
     try {
-        const response = await fetch('/api/generate-zwo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(workout)
-        });
-
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${workout.metadata.name.replace(/\s+/g, '_')}.zwo`;
-            document.body.appendChild(a);
-            a.click();
-        } else {
-            console.error('Error generating file');
-        }
+        const xmlContent = generateZWO(workout);
+        const blob = new Blob([xmlContent], { type: "application/xml" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${workout.metadata.name.replace(/\s+/g, '_')}.zwo`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
     } catch (e) {
-        console.error(e);
+        console.error("Error generating ZWO:", e);
+        alert("Failed to generate ZWO file.");
     }
 }
 
-async function loadFile(event) {
+function loadFile(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        const response = await fetch('/api/parse-zwo', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            const data = await response.json();
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const content = e.target.result;
+            const data = parseZWO(content);
+            
             document.getElementById('workoutName').value = data.metadata.name;
             document.getElementById('workoutAuthor').value = data.metadata.author;
             document.getElementById('workoutDesc').value = data.metadata.description || "";
             document.getElementById('workoutTags').value = data.metadata.tags.join(', ');
+            
             segments = data.segments.map(s => ({ ...s, id: Date.now() + Math.random() }));
             updateUI();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to parse ZWO file.");
         }
-    } catch (e) {
-        console.error(e);
-    }
+    };
+    reader.readAsText(file);
 }
