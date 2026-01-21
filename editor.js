@@ -198,6 +198,7 @@ function updateChart() {
     chart.data.datasets[0].data = data;
     chart.update();
 }
+
 function addSegment(type, defaults = {}) {
     const base = {
         id: Date.now() + Math.random(),
@@ -206,9 +207,12 @@ function addSegment(type, defaults = {}) {
         text: ""
     };
 
-    if (type === 'Warmup' || type === 'CoolDown' || type === 'Ramp') {
+    if (type === 'Warmup' || type === 'Ramp') {
         base.power_low = 0.25;
         base.power_high = 0.75;
+    } else if (type === 'CoolDown') {
+        base.power_low = 0.75;
+        base.power_high = 0.25;
     } else if (type === 'SteadyState') {
         base.power = 0.75;
     } else if (type === 'IntervalsT') {
@@ -410,44 +414,45 @@ function handleDragEnd(e) {
     });
 }
 
+
 // API Interactions
 // --- XML Generation and Parsing Logic (Client-Side) ---
 
 function generateZWO(workout) {
     const meta = workout.metadata;
-    let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
-    xml += '<workout_file>\n';
-    xml += '    <author>' + escapeXml(meta.author) + '</author>\n';
-    xml += '    <name>' + escapeXml(meta.name) + '</name>\n';
-    xml += '    <description>' + escapeXml(meta.description) + '</description>\n';
-    xml += '    <sportType>' + escapeXml(meta.sport_type) + '</sportType>\n';
-    xml += '    <tags>\n';
+    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n`;
+    xml += `<workout_file>\n`;
+    xml += `    <author>${escapeXml(meta.author)}</author>\n`;
+    xml += `    <name>${escapeXml(meta.name)}</name>\n`;
+    xml += `    <description>${escapeXml(meta.description)}</description>\n`;
+    xml += `    <sportType>${escapeXml(meta.sport_type)}</sportType>\n`;
+    xml += `    <tags>\n`;
     meta.tags.forEach(tag => {
-        if(tag.trim()) xml += '        <tag name="' + escapeXml(tag.trim()) + '"/>\n';
+        if(tag.trim()) xml += `        <tag name="${escapeXml(tag.trim())}"/>\n`;
     });
-    xml += '    </tags>\n';
-    xml += '    <workout>\n';
+    xml += `    </tags>\n`;
+    xml += `    <workout>\n`;
 
     workout.segments.forEach(s => {
         if (s.type === 'SteadyState') {
-            xml += '        <SteadyState Duration="' + s.duration + '" Power="' + s.power + '"/>\n';
+            xml += `        <SteadyState Duration="${s.duration}" Power="${s.power}"/>\n`;
         } else if (s.type === 'Warmup') {
-            xml += '        <Warmup Duration="' + s.duration + '" PowerLow="' + s.power_low + '" PowerHigh="' + s.power_high + '"/>\n';
+            xml += `        <Warmup Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
         } else if (s.type === 'CoolDown') {
-            xml += '        <CoolDown Duration="' + s.duration + '" PowerLow="' + s.power_low + '" PowerHigh="' + s.power_high + '"/>\n';
+            xml += `        <CoolDown Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
         } else if (s.type === 'Ramp') {
-            xml += '        <Ramp Duration="' + s.duration + '" PowerLow="' + s.power_low + '" PowerHigh="' + s.power_high + '"/>\n';
+            xml += `        <Ramp Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
         } else if (s.type === 'IntervalsT') {
-            xml += '        <IntervalsT Repeat="' + s.repeat + '" OnDuration="' + s.on_duration + '" OffDuration="' + s.off_duration + '" OnPower="' + s.on_power + '" OffPower="' + s.off_power + '"/>\n';
+            xml += `        <IntervalsT Repeat="${s.repeat}" OnDuration="${s.on_duration}" OffDuration="${s.off_duration}" OnPower="${s.on_power}" OffPower="${s.off_power}"/>\n`;
         } else if (s.type === 'FreeRide') {
-            xml += '        <FreeRide Duration="' + s.duration + '"/>\n';
+            xml += `        <FreeRide Duration="${s.duration}"/>\n`;
         } else if (s.type === 'MaxEffort') {
-            xml += '        <MaxEffort Duration="' + s.duration + '"/>\n';
+            xml += `        <MaxEffort Duration="${s.duration}"/>\n`;
         }
     });
 
-    xml += '    </workout>\n';
-    xml += '</workout_file>';
+    xml += `    </workout>\n`;
+    xml += `</workout_file>`;
     return xml;
 }
 
@@ -545,7 +550,7 @@ function saveWorkout() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = workout.metadata.name.replace(/\s+/g, '_') + '.zwo';
+        a.download = `${workout.metadata.name.replace(/\s+/g, '_')}.zwo`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
