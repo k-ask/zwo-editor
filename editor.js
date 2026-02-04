@@ -457,20 +457,29 @@ function handleDragEnd(e) {
 
 
 // API Interactions
-// --- XML Generation and Parsing Logic (Client-Side) ---
-
+// --- XML Generation and Parsing Logic (Client-Side)// ZWO Generation
 function generateZWO(workout) {
-    const meta = workout.metadata;
+    // Normalize metadata: Handle both flat structure (Static) and nested metadata (Temp Save)
+    const meta = workout.metadata || {
+        name: workout.name || "Untitled Workout",
+        author: workout.author || "Zwifter",
+        description: workout.description || "",
+        sport_type: "bike",
+        tags: workout.tags || []
+    };
+
     let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n`;
     xml += `<workout_file>\n`;
     xml += `    <author>${escapeXml(meta.author)}</author>\n`;
     xml += `    <name>${escapeXml(meta.name)}</name>\n`;
     xml += `    <description>${escapeXml(meta.description)}</description>\n`;
-    xml += `    <sportType>${escapeXml(meta.sport_type)}</sportType>\n`;
+    xml += `    <sportType>${escapeXml(meta.sport_type || 'bike')}</sportType>\n`;
     xml += `    <tags>\n`;
-    meta.tags.forEach(tag => {
-        if (tag.trim()) xml += `        <tag name="${escapeXml(tag.trim())}"/>\n`;
-    });
+    if (meta.tags && Array.isArray(meta.tags)) {
+        meta.tags.forEach(tag => {
+            if (tag.trim()) xml += `        <tag name="${escapeXml(tag.trim())}"/>\n`;
+        });
+    }
     xml += `    </tags>\n`;
     xml += `    <workout>\n`;
 
@@ -579,6 +588,18 @@ function escapeXml(unsafe) {
 
 // --- API Interactions Replacement ---
 
+function triggerDownload(xml, filename) {
+    const blob = new Blob([xml], { type: "application/xml" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
 function saveWorkout() {
     const workout = {
         metadata: {
@@ -593,20 +614,41 @@ function saveWorkout() {
 
     try {
         const xmlContent = generateZWO(workout);
-        const blob = new Blob([xmlContent], { type: "application/xml" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${workout.metadata.name.replace(/\s+/g, '_')}.zwo`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        const filename = `${workout.metadata.name.replace(/\s+/g, '_')}.zwo`;
+        triggerDownload(xmlContent, filename);
     } catch (e) {
         console.error("Error generating ZWO:", e);
         alert("Failed to generate ZWO file.");
     }
 }
+
+function downloadLibraryWorkout(id) {
+    let item = null;
+
+    // Check if ID is string and starts with tmp_
+    if (String(id).startsWith('tmp_')) {
+        const lib = getTempSaves();
+        item = lib.find(i => i.id === id);
+    } else {
+        if (typeof STATIC_WORKOUTS !== 'undefined') {
+            item = STATIC_WORKOUTS.find(i => i.id == id);
+        }
+    }
+
+    if (!item) return;
+
+    // Construct workout object expected by generateZWO
+    // Saved items have { metadata: {...}, segments: [...] } matching structure
+    try {
+        const xml = generateZWO(item);
+        const filename = `${(item.name || "workout").replace(/\s+/g, '_')}.zwo`;
+        triggerDownload(xml, filename);
+    } catch (e) {
+        console.error("Error downloading from library:", e);
+        alert("Failed to download workout.");
+    }
+}
+
 
 function loadFile(event) {
     const file = event.target.files[0];
@@ -668,11 +710,11 @@ function calculateTSS() {
 }
 
 
-// --- Workout Library (LocalStorage) ---
+// --- Workout Library & Temp Save ---
 
 function openLibrary() {
     document.getElementById('libraryModal').style.display = 'flex';
-    // Pre-fill name if exists
+    // Pre-fill name if exists for temp save context (though now handled by specific button)
     document.getElementById('libSaveName').value = document.getElementById('workoutName').value;
     renderLibrary();
 }
@@ -681,17 +723,20 @@ function closeLibrary() {
     document.getElementById('libraryModal').style.display = 'none';
 }
 
-function getLibrary() {
-    const data = localStorage.getItem('zwo_library_desktop');
+// Temp Save (LocalStorage)
+function getTempSaves() {
+    // Migrating or using new key? Let's use 'zwo_temp_saves'
+    const data = localStorage.getItem('zwo_temp_saves');
     return data ? JSON.parse(data) : [];
 }
 
-function saveToLibrary() {
-    const nameInput = document.getElementById('libSaveName');
+function tempSave() {
+    const nameInput = document.getElementById('workoutName'); // Use main title
     const name = nameInput.value.trim() || 'Untitled Workout';
-    if (segments.length === 0) { alert('Workout is empty!'); return; }
 
-    const lib = getLibrary();
+    if (segments.length === 0) { alert('Workout is empty! nothing to save.'); return; }
+
+    const lib = getTempSaves();
 
     // Capture full metadata
     const metadata = {
@@ -702,29 +747,50 @@ function saveToLibrary() {
     };
 
     const newEntry = {
-        id: Date.now(),
+        id: 'tmp_' + Date.now(), // Prefix to distinguish from static
         name: name,
         date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
         segments: segments,
-        metadata: metadata
+        metadata: metadata,
+        source: 'local'
     };
 
-    lib.unshift(newEntry); // Add to top
-    localStorage.setItem('zwo_library_desktop', JSON.stringify(lib));
+    lib.unshift(newEntry);
+    localStorage.setItem('zwo_temp_saves', JSON.stringify(lib));
 
-    renderLibrary();
-    alert('Saved to Library!');
+    alert('Saved to Temp Storage!');
+    // If library modal is open, refresh it. If not, maybe just alert is fine?
+    // User clicked "Temp Save" button on header, so modal might not be open.
 }
 
-function loadFromLibrary(id) {
-    const lib = getLibrary();
-    const entry = lib.find(item => item.id === id);
+function deleteTempSave(id) {
+    if (!confirm('Delete this temp save?')) return;
+    let lib = getTempSaves();
+    lib = lib.filter(item => item.id !== id);
+    localStorage.setItem('zwo_temp_saves', JSON.stringify(lib));
+    renderLibrary();
+}
+
+function loadLibraryItem(id) {
+    let entry = null;
+
+    // Check if ID is string and starts with tmp_
+    if (String(id).startsWith('tmp_')) {
+        const lib = getTempSaves();
+        entry = lib.find(item => item.id === id);
+    } else {
+        // Static
+        if (typeof STATIC_WORKOUTS !== 'undefined') {
+            entry = STATIC_WORKOUTS.find(item => item.id == id);
+        }
+    }
+
     if (entry) {
         if (confirm(`Load "${entry.name}"? Unsaved changes will be lost.`)) {
             // Restore segments
             segments = JSON.parse(JSON.stringify(entry.segments));
-            // Restore ids
-            segments.forEach(s => { if (!s.id) s.id = Math.random(); });
+            // New random IDs for segments
+            segments.forEach(s => s.id = Date.now() + Math.random());
 
             // Restore Metadata
             if (entry.metadata) {
@@ -732,6 +798,12 @@ function loadFromLibrary(id) {
                 document.getElementById('workoutAuthor').value = entry.metadata.author || "Zwifter";
                 document.getElementById('workoutDesc').value = entry.metadata.description || "";
                 document.getElementById('workoutTags').value = entry.metadata.tags || "";
+            } else {
+                // Static workouts might not have full metadata obj, use root props
+                document.getElementById('workoutName').value = entry.name;
+                document.getElementById('workoutAuthor').value = "Zwifter"; // Default
+                document.getElementById('workoutDesc').value = entry.description || "";
+                document.getElementById('workoutTags').value = (entry.tags || []).join(', ');
             }
 
             updateUI();
@@ -740,37 +812,68 @@ function loadFromLibrary(id) {
     }
 }
 
-function deleteFromLibrary(id) {
-    if (!confirm('Delete this workout?')) return;
-    let lib = getLibrary();
-    lib = lib.filter(item => item.id !== id);
-    localStorage.setItem('zwo_library_desktop', JSON.stringify(lib));
-    renderLibrary();
-}
-
 function renderLibrary() {
     const list = document.getElementById('libraryList');
     list.innerHTML = '';
-    const lib = getLibrary();
 
-    if (lib.length === 0) {
-        list.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">No saved workouts</div>';
-        return;
+    // 1. Temp Saves Section
+    const tempSaves = getTempSaves();
+    if (tempSaves.length > 0) {
+        const header = document.createElement('h4');
+        header.style.color = '#888';
+        header.style.marginTop = '0';
+        header.textContent = 'Temp Saved (Local)';
+        list.appendChild(header);
+
+        tempSaves.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'lib-item';
+            div.innerHTML = `
+                <div class="lib-info">
+                    <div class="lib-name">${item.name}</div>
+                    <div class="lib-date">${item.date} • ${item.segments.length} segs</div>
+                </div>
+                <div class="lib-actions">
+                    <button class="lib-btn lib-load" onclick="loadLibraryItem('${item.id}')">Load</button>
+                    <button class="lib-btn lib-dl" onclick="downloadLibraryWorkout('${item.id}')" style="background:#444; color:white; border:none; padding:5px 10px; border-radius:4px; margin-right:5px; cursor:pointer;">DL</button>
+                    <button class="lib-btn lib-del" onclick="deleteTempSave('${item.id}')">Del</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+
+        const hr = document.createElement('hr');
+        hr.style.borderColor = '#444';
+        hr.style.margin = '15px 0';
+        list.appendChild(hr);
     }
 
-    lib.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'lib-item';
-        div.innerHTML = `
-            <div class="lib-info">
-                <div class="lib-name">${item.name}</div>
-                <div class="lib-date">${item.date} • ${item.segments.length} segments</div>
-            </div>
-            <div class="lib-actions">
-                <button class="lib-btn lib-load" onclick="loadFromLibrary(${item.id})">Load</button>
-                <button class="lib-btn lib-del" onclick="deleteFromLibrary(${item.id})">Del</button>
-            </div>
-        `;
-        list.appendChild(div);
-    });
+    // 2. Static Workouts Section
+    const staticHeader = document.createElement('h4');
+    staticHeader.style.color = '#888';
+    staticHeader.style.marginTop = '0';
+    staticHeader.textContent = 'Standard Library';
+    list.appendChild(staticHeader);
+
+    if (typeof STATIC_WORKOUTS === 'undefined' || STATIC_WORKOUTS.length === 0) {
+        const msg = document.createElement('div');
+        msg.innerHTML = '<div style="padding:10px; color:#666;">No standard workouts found.</div>';
+        list.appendChild(msg);
+    } else {
+        STATIC_WORKOUTS.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'lib-item';
+            div.innerHTML = `
+                <div class="lib-info">
+                    <div class="lib-name">${item.name}</div>
+                    <div class="lib-date">${item.description || ''}</div>
+                </div>
+                <div class="lib-actions">
+                    <button class="lib-btn lib-load" onclick="loadLibraryItem('${item.id}')">Load</button>
+                    <button class="lib-btn lib-dl" onclick="downloadLibraryWorkout('${item.id}')" style="background:#444; color:white; border:none; padding:5px 10px; border-radius:4px; margin-right:5px; cursor:pointer;">DL</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
 }

@@ -5,31 +5,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zwift Workout Editor</title>
-    <link rel="stylesheet" href="style.css?v=1.1">
+    <link rel="stylesheet" href="style.css?v=1.2">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="workouts.js"></script>
+    <script src="editor.js" defer></script>
 </head>
 
 <body>
     <div class="app-container">
         <header class="top-bar">
-            <div class="logo">
-                <span class="z-icon">Z</span> W O E D I T O R <span style="font-size:0.8rem; color:#888;">v1.1</span>
-                <span style="font-size:0.8rem; color:#888; margin-left:10px; font-weight:normal; letter-spacing:0;">made
-                    by</span> <a href="https://www.youtube.com/@velo-ology" target="_blank"
-                    style="font-size:0.8rem; color:#608ac1; text-decoration:underline; font-weight:normal; letter-spacing:0;">"velo-ology
-                    ch"</a> <span
-                    style="font-size:0.8rem; color:#888; margin-left:15px; font-weight:normal; letter-spacing:0;">Switch
-                    to </span><a href="https://k-ask.github.io/zwo-editor-mobile/" target="_blank"
-                    style="font-size:0.8rem; color:#608ac1; text-decoration:underline; font-weight:normal; letter-spacing:0;">Mobile</a><span
-                    style="font-size:0.8rem; color:#888; font-weight:normal; letter-spacing:0;"> View</span>
+            <div class="header-left" style="display:flex; flex-direction:column; justify-content:center;">
+                <div style="font-size:0.8rem; margin-bottom:4px;"><a href="https://k-ask.github.io/zwo-editor-mobile/"
+                        target="_blank" style="color:#608ac1; text-decoration:underline;">Switch to Mobile View</a>
+                </div>
+                <div class="logo">
+                    <span class="z-icon">Z</span> W O E D I T O R <span
+                        style="font-size:0.8rem; color:#888;">v1.2</span>
+                    <span
+                        style="font-size:0.8rem; color:#888; margin-left:10px; font-weight:normal; letter-spacing:0;">made
+                        by</span> <a href="https://www.youtube.com/@velo-ology" target="_blank"
+                        style="font-size:0.8rem; color:#608ac1; text-decoration:none; margin-left:5px; font-weight:normal; letter-spacing:0;">"velo-ology
+                        ch"</a>
+                </div>
             </div>
             <div class="actions">
                 <input type="file" id="fileInput" accept=".zwo" style="display: none;">
                 <button id="loadBtn" class="btn secondary">Import .zwo</button>
                 <button id="libBtn" class="btn secondary" onclick="openLibrary()">Library</button>
+                <button id="tempSaveBtn" class="btn secondary" onclick="tempSave()">Temp Save</button>
                 <button id="saveBtn" class="btn primary">Export .zwo</button>
             </div>
         </header>
