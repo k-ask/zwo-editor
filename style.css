@@ -169,24 +169,40 @@ body {
     overflow: hidden;
 }
 
-.sidebar {
-    width: 300px;
-    background-color: var(--bg-panel);
+.workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+/* Left Column: Segments (Full Height) */
+.segments-column {
+    width: 750px;
+    min-width: 750px;
+    display: flex;
+    flex-direction: column;
     border-right: 1px solid var(--border);
+    overflow: hidden;
+}
+
+/* Right Column: Graph + Metadata */
+.right-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar {
+    background-color: var(--bg-panel);
+    border-top: 1px solid var(--border);
     padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
     overflow-y: auto;
-}
-
-.workspace {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .panel h3 {
@@ -232,6 +248,34 @@ body {
     font-size: 0.9rem;
 }
 
+.stats-inline {
+    display: flex;
+    gap: 2rem;
+    justify-content: space-around;
+}
+
+.stat-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.stats-compact {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    padding-top: 1rem;
+    color: var(--text-muted);
+}
+
+.stats-compact .separator {
+    margin: 0 0.3rem;
+    color: var(--text-muted);
+}
+
 .highlight {
     color: var(--accent);
     font-weight: bold;
@@ -241,19 +285,19 @@ body {
 /* Graph */
 .graph-container {
     height: 300px;
-    /* Fixed height for graph */
     background: #151515;
-    border-radius: 8px;
     padding: 1rem;
+    margin: 1rem;
+    margin-bottom: 0;
+    border-radius: 8px;
     border: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
 /* Segment Editor */
 .segments-area {
     flex: 1;
     background: var(--bg-panel);
-    border-radius: 8px;
-    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -262,9 +306,6 @@ body {
 .segments-toolbar {
     padding: 10px 1rem;
     border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     background: #333;
 }
 
@@ -276,8 +317,11 @@ body {
 .add-buttons {
     display: flex;
     gap: 6px;
-    flex-wrap: wrap;
-    /* allow wrapping if too many buttons */
+    flex-wrap: nowrap;
+    padding: 10px 1rem;
+    background: #333;
+    border-bottom: 1px solid var(--border);
+    /* Keep all buttons in one row */
 }
 
 .segments-list {

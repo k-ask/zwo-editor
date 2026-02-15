@@ -41,72 +41,70 @@
         </header>
 
         <main class="editor-layout">
-            <!-- Left Sidebar: Workout Metadata -->
-            <aside class="sidebar">
-                <div class="panel">
-                    <h3>Metadata</h3>
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input type="text" id="workoutName" value="New Workout">
-                    </div>
-                    <div class="form-group">
-                        <label>Author</label>
-                        <input type="text" id="workoutAuthor" value="Zwifter">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="workoutDesc" rows="4"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Tags (comma separated)</label>
-                        <input type="text" id="workoutTags" placeholder="FTP, Intervals, Recovery">
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <h3>Stats</h3>
-                    <div class="stat-row">
-                        <span>Duration:</span>
-                        <span id="totalDuration" class="highlight">00:00:00</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>TSS:</span>
-                        <span id="totalTSS" class="highlight">0</span>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Center/Right: Visualization and Segments -->
-            <section class="workspace">
-                <!-- Graph Area -->
-                <div class="graph-container">
-                    <canvas id="workoutChart"></canvas>
-                </div>
-
-                <!-- Segment Editor -->
+            <!-- Left Column: Segment List (Full Height) -->
+            <section class="segments-column">
                 <div class="segments-area">
                     <div class="segments-toolbar">
                         <h3>Segments</h3>
-                        <div class="add-buttons">
-                            <button class="btn-sm" onclick="addSegment('Warmup')">Warmup</button>
-                            <button class="btn-sm btn-z1" onclick="addSegment('SteadyState', {power: 0.50})">Z1</button>
-                            <button class="btn-sm btn-z2" onclick="addSegment('SteadyState', {power: 0.65})">Z2</button>
-                            <button class="btn-sm btn-z3" onclick="addSegment('SteadyState', {power: 0.80})">Z3</button>
-                            <button class="btn-sm btn-z4" onclick="addSegment('SteadyState', {power: 0.95})">Z4</button>
-                            <button class="btn-sm btn-z5" onclick="addSegment('SteadyState', {power: 1.10})">Z5</button>
-                            <button class="btn-sm btn-z6" onclick="addSegment('SteadyState', {power: 1.25})">Z6</button>
-                            <button class="btn-sm" onclick="addSegment('IntervalsT')">Intervals</button>
-                            <button class="btn-sm" onclick="addSegment('IntervalsBlock3')">Intervals 3</button>
-                            <button class="btn-sm" onclick="addSegment('Ramp')">Ramp</button>
-                            <button class="btn-sm" onclick="addSegment('CoolDown')">CoolDown</button>
-                            <button class="btn-sm" onclick="addSegment('FreeRide')">FreeRide</button>
-                        </div>
+                    </div>
+                    <div class="add-buttons">
+                        <button class="btn-sm" onclick="addSegment('Warmup')">Warmup</button>
+                        <button class="btn-sm btn-z1" onclick="addSegment('SteadyState', {power: 0.50})">Z1</button>
+                        <button class="btn-sm btn-z2" onclick="addSegment('SteadyState', {power: 0.65})">Z2</button>
+                        <button class="btn-sm btn-z3" onclick="addSegment('SteadyState', {power: 0.80})">Z3</button>
+                        <button class="btn-sm btn-z4" onclick="addSegment('SteadyState', {power: 0.95})">Z4</button>
+                        <button class="btn-sm btn-z5" onclick="addSegment('SteadyState', {power: 1.10})">Z5</button>
+                        <button class="btn-sm btn-z6" onclick="addSegment('SteadyState', {power: 1.25})">Z6</button>
+                        <button class="btn-sm" onclick="addSegment('IntervalsT')">Intervals</button>
+                        <button class="btn-sm" onclick="addSegment('IntervalsBlock3')">Intervals 3</button>
+                        <button class="btn-sm" onclick="addSegment('Ramp')">Ramp</button>
+                        <button class="btn-sm" onclick="addSegment('CoolDown')">CoolDown</button>
+                        <button class="btn-sm" onclick="addSegment('FreeRide')">FreeRide</button>
                     </div>
 
                     <div id="segmentsList" class="segments-list">
                         <!-- Segments will be injected here -->
                     </div>
                 </div>
+            </section>
+
+            <!-- Right Column: Graph (Top) + Metadata (Bottom) -->
+            <section class="right-column">
+                <!-- Graph Area -->
+                <div class="graph-container">
+                    <canvas id="workoutChart"></canvas>
+                </div>
+
+                <!-- Stats and Metadata -->
+                <aside class="sidebar">
+                    <div class="stats-compact">
+                        <span>Duration</span>
+                        <span id="totalDuration" class="highlight">00:00:00</span>
+                        <span class="separator">/</span>
+                        <span>TSS</span>
+                        <span id="totalTSS" class="highlight">0</span>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Metadata</h3>
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="workoutName" value="New Workout">
+                        </div>
+                        <div class="form-group">
+                            <label>Author</label>
+                            <input type="text" id="workoutAuthor" value="Zwifter">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="workoutDesc" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Tags (comma separated)</label>
+                            <input type="text" id="workoutTags" placeholder="FTP, Intervals, Recovery">
+                        </div>
+                    </div>
+                </aside>
             </section>
         </main>
     </div>
