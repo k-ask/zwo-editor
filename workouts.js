@@ -4,6 +4,78 @@
 
 const STATIC_WORKOUTS = [
     {
+        "id": "CrissCross Workout",
+        "name": "CrissCross long",
+        "description": "CrissCross modified",
+        "segments": [
+            {
+                "type": "Warmup",
+                "duration": 300,
+                "power_low": 0.5,
+                "power_high": 0.6
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 0.8
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 45,
+                "power": 1.0
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.2
+            },
+            {
+                "type": "SteadyState",
+                "duration": 105,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
+                "on_power": 1.1,
+                "off_power": 0.85
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.75
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
+                "on_power": 1.1,
+                "off_power": 0.85
+            },
+            {
+                "type": "CoolDown",
+                "duration": 300,
+                "power_low": 0.6,
+                "power_high": 0.4
+            }
+        ]
+    },
+    {
         "id": "CrissCross Zwift Workout",
         "name": "CrissCross",
         "description": "Standard CrissCross",
@@ -64,6 +136,78 @@ const STATIC_WORKOUTS = [
                 "repeat": 8,
                 "on_duration": 30,
                 "off_duration": 120,
+                "on_power": 1.2,
+                "off_power": 0.9
+            },
+            {
+                "type": "CoolDown",
+                "duration": 300,
+                "power_low": 0.6,
+                "power_high": 0.4
+            }
+        ]
+    },
+    {
+        "id": "CrissCross_-1",
+        "name": "CrissCross -1",
+        "description": "CrissCross modified",
+        "segments": [
+            {
+                "type": "Warmup",
+                "duration": 300,
+                "power_low": 0.5,
+                "power_high": 0.6
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 0.8
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 45,
+                "power": 1.0
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.2
+            },
+            {
+                "type": "SteadyState",
+                "duration": 105,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
+                "on_power": 1.2,
+                "off_power": 0.9
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
                 "on_power": 1.2,
                 "off_power": 0.9
             },
