@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zwo-editor-v1.4-1773999656';
+const CACHE_NAME = 'zwo-editor-v1.4-1774000585';
 const ASSETS = [
     './',
     './index.html',
