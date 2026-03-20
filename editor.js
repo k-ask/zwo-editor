@@ -274,9 +274,9 @@ function removeSegment(id) {
 function updateSegment(id, field, value) {
     const s = segments.find(s => s.id === id);
     if (s) {
-        if (field.includes('power')) {
+        if (field.includes('power') || field.includes('pwr')) {
             s[field] = parseFloat(value) / 100.0;
-        } else if (field === 'duration' || field === 'on_duration' || field === 'off_duration') {
+        } else if (field.includes('duration') || field.includes('dur')) {
             s[field] = parseTime(value);
         } else {
             s[field] = parseFloat(value);
