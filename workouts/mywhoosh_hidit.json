@@ -1,0 +1,135 @@
+{
+    "id": "mywhoosh_hidit",
+    "name": "HIDIT",
+    "description": "mywhoosh - hidit",
+    "segments": [
+        {
+            "type": "Warmup",
+            "duration": 120,
+            "power_low": 0.5,
+            "power_high": 0.6
+        },
+        {
+            "type": "SteadyState",
+            "duration": 360,
+            "power": 0.6
+        },
+        {
+            "type": "Warmup",
+            "duration": 120,
+            "power_low": 0.65,
+            "power_high": 1.4
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 0.55
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 1.35
+        },
+        {
+            "type": "SteadyState",
+            "duration": 170,
+            "power": 0.55
+        },
+        {
+            "type": "SteadyState",
+            "duration": 180,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 120,
+            "power": 0.55
+        },
+        {
+            "type": "SteadyState",
+            "duration": 120,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 90,
+            "power": 0.55
+        },
+        {
+            "type": "SteadyState",
+            "duration": 90,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 0.55
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 40,
+            "power": 0.55
+        },
+        {
+            "type": "SteadyState",
+            "duration": 40,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 30,
+            "power": 0.5
+        },
+        {
+            "type": "SteadyState",
+            "duration": 30,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 20,
+            "power": 0.5
+        },
+        {
+            "type": "SteadyState",
+            "duration": 30,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 20,
+            "power": 0.5
+        },
+        {
+            "type": "SteadyState",
+            "duration": 30,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 20,
+            "power": 0.4
+        },
+        {
+            "type": "SteadyState",
+            "duration": 30,
+            "power": 1.3
+        },
+        {
+            "type": "SteadyState",
+            "duration": 20,
+            "power": 0.4
+        },
+        {
+            "type": "CoolDown",
+            "duration": 300,
+            "power_low": 0.55,
+            "power_high": 0.4
+        }
+    ]
+}

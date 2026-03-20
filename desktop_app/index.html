@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwift Workout Editor</title>
+    <link rel="stylesheet" href="style.css?v=1.3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="workouts.js?t=1773997909"></script>
+    <script src="editor.js" defer></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="top-bar">
+            <div class="header-left" style="display:flex; flex-direction:column; justify-content:center;">
+                <div style="font-size:0.8rem; margin-bottom:4px;"><a href="https://k-ask.github.io/zwo-editor-mobile/"
+                        target="_blank" style="color:#608ac1; text-decoration:underline;">Switch to Mobile View</a>
+                </div>
+                <div class="logo">
+                    <span class="z-icon">Z</span> W O E D I T O R <span
+                        style="font-size:0.8rem; color:#888;">v1.3</span>
+                    <span
+                        style="font-size:0.8rem; color:#888; margin-left:10px; font-weight:normal; letter-spacing:0;">made
+                        by</span> <a href="https://www.youtube.com/@velo-ology" target="_blank"
+                        style="font-size:0.8rem; color:#608ac1; text-decoration:none; margin-left:5px; font-weight:normal; letter-spacing:0;">"velo-ology
+                        ch"</a>
+                </div>
+            </div>
+            <div class="actions">
+                <input type="file" id="fileInput" accept=".zwo" style="display: none;">
+                <button id="loadBtn" class="btn secondary">Import .zwo</button>
+                <button id="libBtn" class="btn secondary" onclick="openLibrary()">Library</button>
+                <button id="tempSaveBtn" class="btn secondary" onclick="tempSave()">Temp Save</button>
+                <button id="saveBtn" class="btn primary">Export .zwo</button>
+            </div>
+        </header>
+
+        <main class="editor-layout">
+            <!-- Left Column: Segment List (Full Height) -->
+            <section class="segments-column">
+                <div class="segments-area">
+                    <div class="segments-toolbar" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Segments</h3>
+                        <button class="btn-sm" onclick="clearAllSegments()" style="background:#cc4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer;" title="Clear all segments">Clear All</button>
+                    </div>
+                    <div class="add-buttons">
+                        <button class="btn-sm" onclick="addSegment('Warmup')">Warmup</button>
+                        <button class="btn-sm btn-z1" onclick="addSegment('SteadyState', {power: 0.50})">Z1</button>
+                        <button class="btn-sm btn-z2" onclick="addSegment('SteadyState', {power: 0.65})">Z2</button>
+                        <button class="btn-sm btn-z3" onclick="addSegment('SteadyState', {power: 0.80})">Z3</button>
+                        <button class="btn-sm btn-z4" onclick="addSegment('SteadyState', {power: 0.95})">Z4</button>
+                        <button class="btn-sm btn-z5" onclick="addSegment('SteadyState', {power: 1.10})">Z5</button>
+                        <button class="btn-sm btn-z6" onclick="addSegment('SteadyState', {power: 1.25})">Z6</button>
+                        <button class="btn-sm" onclick="addSegment('IntervalsT')">Intervals</button>
+                        <button class="btn-sm" onclick="addSegment('IntervalsBlock3')">Intervals 3</button>
+                        <button class="btn-sm" onclick="addSegment('Ramp')">Ramp</button>
+                        <button class="btn-sm" onclick="addSegment('CoolDown')">CoolDown</button>
+                        <button class="btn-sm" onclick="addSegment('FreeRide')">FreeRide</button>
+                    </div>
+
+                    <div id="segmentsList" class="segments-list">
+                        <!-- Segments will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Graph (Top) + Metadata (Bottom) -->
+            <section class="right-column">
+                <!-- Graph Area -->
+                <div class="graph-container">
+                    <canvas id="workoutChart"></canvas>
+                </div>
+
+                <!-- Stats and Metadata -->
+                <aside class="sidebar">
+                    <div class="stats-compact">
+                        <span>Duration</span>
+                        <span id="totalDuration" class="highlight">00:00:00</span>
+                        <span class="separator">/</span>
+                        <span>TSS</span>
+                        <span id="totalTSS" class="highlight">0</span>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Metadata</h3>
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="workoutName" value="New Workout">
+                        </div>
+                        <div class="form-group">
+                            <label>Author</label>
+                            <input type="text" id="workoutAuthor" value="Zwifter">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="workoutDesc" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Tags (comma separated)</label>
+                            <input type="text" id="workoutTags" placeholder="FTP, Intervals, Recovery">
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </main>
+    </div>
+
+    <!-- Library Modal -->
+    <div id="libraryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Workout Library (Browser Storage)</h3>
+                <button class="close-modal" onclick="closeLibrary()">&times;</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <input type="text" id="libSaveName" placeholder="Workout Name for Library"
+                    style="flex:1; padding:10px; border-radius:4px; border:1px solid #444; background:#222; color:white;">
+                <button onclick="saveToLibrary()" class="btn primary">Save to Library</button>
+            </div>
+            <div id="libraryList"
+                style="max-height:400px; overflow-y:auto; border:1px solid var(--border); border-radius:4px;">
+                <!-- List injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="editor.js?v=1.1"></script>
+</body>
+
+</html>

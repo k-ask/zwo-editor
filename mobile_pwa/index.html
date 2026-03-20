@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZWO Editor Mobile</title>
+    <link rel="stylesheet" href="style.css?v=1.3">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e1e1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header>
+        <div style="font-size:0.8rem; margin-bottom:2px;"><a href="https://k-ask.github.io/zwo-editor/" target="_blank"
+                style="color:#608ac1; text-decoration:underline;">Switch to Desktop View</a></div>
+        <h1>ZWO editor mobile <span style="font-size:0.8rem; color:#888;">v1.3</span> <span
+                style="font-size:0.8rem; color:#888; margin-left:5px;">made by</span> <a
+                href="https://www.youtube.com/@velo-ology" target="_blank"
+                style="font-size:0.8rem; color:#608ac1; text-decoration:underline;">"velo-ology ch"</a></h1>
+        <div class="stats">
+            <div id="totalDuration">00:00</div>
+            <div id="totalTSS" style="margin-left:10px; color:#aaa; font-size:0.9rem;">TSS: 0</div>
+        </div>
+    </header>
+
+    <div id="graphContainer">
+        <canvas id="workoutChart"></canvas>
+    </div>
+
+    <div class="quick-add-toolbar">
+        <div class="qa-row">
+            <button onclick="handleAdd('Warmup')" class="qa-btn">Ramp Up</button>
+            <button onclick="handleAdd('CoolDown')" class="qa-btn">RampDown</button>
+            <button onclick="handleAdd('IntervalsT')" class="qa-btn">Intervals</button>
+            <button onclick="handleAdd('IntervalsBlock3')" class="qa-btn">Intervals 3</button>
+        </div>
+        <div class="qa-row zones">
+            <button onclick="handleAdd('SteadyState', {power: 0.50})" class="qa-btn z1">Z1</button>
+            <button onclick="handleAdd('SteadyState', {power: 0.65})" class="qa-btn z2">Z2</button>
+            <button onclick="handleAdd('SteadyState', {power: 0.80})" class="qa-btn z3">Z3</button>
+            <button onclick="handleAdd('SteadyState', {power: 0.95})" class="qa-btn z4">Z4</button>
+            <button onclick="handleAdd('SteadyState', {power: 1.10})" class="qa-btn z5">Z5</button>
+            <button onclick="handleAdd('SteadyState', {power: 1.25})" class="qa-btn z6">Z6</button>
+        </div>
+    </div>
+
+    <main id="segmentsList">
+        <!-- Segments will be injected here -->
+    </main>
+
+    <nav class="toolbar">
+        <button class="tool-btn" onclick="openLibrary()">Library</button>
+        <button class="tool-btn" onclick="document.getElementById('fileInput').click()">Import</button>
+        <button class="tool-btn" onclick="saveWorkout()">Export</button>
+        <button class="tool-btn" onclick="clearAllSegments()" style="color: #ff5555;">Clear</button>
+    </nav>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" accept=".zwo" style="display: none;">
+
+    <!-- Library Modal -->
+    <div id="libraryModal" class="modal">
+        <div class="modal-content" style="text-align: left;">
+            <h3>Workout Library</h3>
+            <div style="margin-bottom:10px; color:#aaa; font-size:0.9rem;">
+                Select a workout to load:
+            </div>
+            <div id="libraryList"
+                style="max-height:300px; overflow-y:auto; margin-bottom:15px; border:1px solid #444; border-radius:5px;">
+                <!-- List injected here -->
+            </div>
+            <button class="close-modal" onclick="closeLibrary()">Close</button>
+        </div>
+    </div>
+
+    <!-- Segment Type Modal -->
+    <div id="typeModal" class="modal">
+        <div class="modal-content">
+            <h3>Add Segment</h3>
+            <div class="type-grid">
+                <button onclick="handleAdd('Warmup')">Warmup</button>
+                <button onclick="handleAdd('SteadyState')">Steady</button>
+                <button onclick="handleAdd('IntervalsT')">Intervals (2-Step)</button>
+                <button onclick="handleAdd('IntervalsBlock3')">Intervals (3-Step)</button>
+                <button onclick="handleAdd('CoolDown')">CoolDown</button>
+                <button onclick="handleAdd('FreeRide')">FreeRide</button>
+            </div>
+            <button class="close-modal" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script src="workouts.js?t=1773997909"></script>
+    <script src="editor.js?v=1.3"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/zwo-editor-mobile/sw.js');
+            });
+        }
+    </script>
+</body>
+
+</html>

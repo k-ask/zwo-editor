@@ -1,0 +1,94 @@
+{
+    "id": "mywhoosh_45min",
+    "name": "45minL3-5build-up",
+    "description": "mywhoosh - 45minL3-5build-up",
+    "segments": [
+        {
+            "type": "Warmup",
+            "duration": 600,
+            "power_low": 0.5,
+            "power_high": 0.7
+        },
+        {
+            "type": "SteadyState",
+            "duration": 300,
+            "power": 0.8
+        },
+        {
+            "type": "SteadyState",
+            "duration": 180,
+            "power": 0.9
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 1.0
+        },
+        {
+            "type": "SteadyState",
+            "duration": 300,
+            "power": 0.86
+        },
+        {
+            "type": "SteadyState",
+            "duration": 180,
+            "power": 0.9
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 1.05
+        },
+        {
+            "type": "SteadyState",
+            "duration": 300,
+            "power": 0.86
+        },
+        {
+            "type": "SteadyState",
+            "duration": 180,
+            "power": 0.95
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 1.1
+        },
+        {
+            "type": "SteadyState",
+            "duration": 300,
+            "power": 0.86
+        },
+        {
+            "type": "SteadyState",
+            "duration": 180,
+            "power": 0.95
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 1.15
+        },
+        {
+            "type": "SteadyState",
+            "duration": 300,
+            "power": 0.86
+        },
+        {
+            "type": "SteadyState",
+            "duration": 180,
+            "power": 0.95
+        },
+        {
+            "type": "SteadyState",
+            "duration": 60,
+            "power": 1.21
+        },
+        {
+            "type": "CoolDown",
+            "duration": 300,
+            "power_low": 0.5,
+            "power_high": 0.3
+        }
+    ]
+}

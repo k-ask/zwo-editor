@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workout_file>
+    <author>Zwifter</author>
+    <name>CrissCross</name>
+    <description>Standard CrissCross</description>
+    <sportType>bike</sportType>
+    <tags>
+    </tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.5" PowerHigh="0.6"/>
+        <SteadyState Duration="60" Power="0.8"/>
+        <SteadyState Duration="30" Power="0.5"/>
+        <SteadyState Duration="45" Power="1"/>
+        <SteadyState Duration="30" Power="0.5"/>
+        <SteadyState Duration="30" Power="1.2"/>
+        <SteadyState Duration="105" Power="0.5"/>
+        <IntervalsT Repeat="8" OnDuration="30" OffDuration="120" OnPower="1.2" OffPower="0.9"/>
+        <SteadyState Duration="300" Power="0.5"/>
+        <IntervalsT Repeat="8" OnDuration="30" OffDuration="120" OnPower="1.2" OffPower="0.9"/>
+        <CoolDown Duration="300" PowerLow="0.6" PowerHigh="0.4"/>
+    </workout>
+</workout_file>

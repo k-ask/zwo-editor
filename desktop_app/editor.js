@@ -54,9 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
     document.getElementById('fileInput').addEventListener('change', loadFile);
 
-    // Add initial dummy segment
+    // Add initial dummy segment (Warmup 10min only)
     addSegment('Warmup', { duration: 600, power_low: 0.25, power_high: 0.75 });
-    addSegment('SteadyState', { duration: 300, power: 0.95 });
     updateUI();
 });
 
@@ -141,6 +140,8 @@ function updateStats() {
     segments.forEach(s => {
         if (s.type === 'IntervalsT') {
             totalSec += s.repeat * (s.on_duration + s.off_duration);
+        } else if (s.type === 'IntervalsBlock3') {
+            totalSec += s.repeat * (s.dur1 + s.dur2 + s.dur3);
         } else {
             totalSec += s.duration;
         }
@@ -158,6 +159,9 @@ function updateStats() {
     }
 
     document.getElementById('totalDuration').innerText = timeStr;
+    const tss = calculateTSS();
+    const tssElem = document.getElementById('totalTSS');
+    if (tssElem) tssElem.innerText = tss;
 }
 
 function updateChart() {
@@ -179,10 +183,24 @@ function updateChart() {
                 data.push({ x: currentTime / 60, y: s.on_power });
                 currentTime += s.on_duration;
                 data.push({ x: currentTime / 60, y: s.on_power });
-                // Off
                 data.push({ x: currentTime / 60, y: s.off_power });
                 currentTime += s.off_duration;
                 data.push({ x: currentTime / 60, y: s.off_power });
+            }
+        } else if (s.type === 'IntervalsBlock3') {
+            for (let i = 0; i < s.repeat; i++) {
+                // Step 1
+                data.push({ x: currentTime / 60, y: s.pwr1 });
+                currentTime += s.dur1;
+                data.push({ x: currentTime / 60, y: s.pwr1 });
+                // Step 2
+                data.push({ x: currentTime / 60, y: s.pwr2 });
+                currentTime += s.dur2;
+                data.push({ x: currentTime / 60, y: s.pwr2 });
+                // Step 3
+                data.push({ x: currentTime / 60, y: s.pwr3 });
+                currentTime += s.dur3;
+                data.push({ x: currentTime / 60, y: s.pwr3 });
             }
         } else if (s.type === 'FreeRide') {
             data.push({ x: currentTime / 60, y: 0.5 });
@@ -207,9 +225,12 @@ function addSegment(type, defaults = {}) {
         text: ""
     };
 
-    if (type === 'Warmup' || type === 'CoolDown' || type === 'Ramp') {
+    if (type === 'Warmup' || type === 'Ramp') {
         base.power_low = 0.25;
         base.power_high = 0.75;
+    } else if (type === 'CoolDown') {
+        base.power_low = 0.75;
+        base.power_high = 0.25;
     } else if (type === 'SteadyState') {
         base.power = 0.75;
     } else if (type === 'IntervalsT') {
@@ -218,6 +239,12 @@ function addSegment(type, defaults = {}) {
         base.off_duration = 60;
         base.on_power = 1.0;
         base.off_power = 0.5;
+        base.duration = 0;
+    } else if (type === 'IntervalsBlock3') {
+        base.repeat = 3;
+        base.dur1 = 60; base.pwr1 = 0.65;
+        base.dur2 = 60; base.pwr2 = 0.85;
+        base.dur3 = 60; base.pwr3 = 1.05;
         base.duration = 0;
     } else if (type === 'FreeRide') {
         base.duration = 600;
@@ -234,7 +261,7 @@ function duplicateSegment(id) {
         const original = segments[idx];
         const copy = JSON.parse(JSON.stringify(original));
         copy.id = Date.now() + Math.random();
-        segments.splice(idx + 1, 0, copy);
+        segments.push(copy);
         updateUI();
     }
 }
@@ -244,12 +271,17 @@ function removeSegment(id) {
     updateUI();
 }
 
+function clearAllSegments() {
+    segments = [];
+    updateUI();
+}
+
 function updateSegment(id, field, value) {
     const s = segments.find(s => s.id === id);
     if (s) {
-        if (field.includes('power')) {
+        if (field.includes('power') || field.includes('pwr')) {
             s[field] = parseFloat(value) / 100.0;
-        } else if (field === 'duration' || field === 'on_duration' || field === 'off_duration') {
+        } else if (field.includes('duration') || field.includes('dur')) {
             s[field] = parseTime(value);
         } else {
             s[field] = parseFloat(value);
@@ -342,13 +374,30 @@ function renderSegmentsList() {
                 <div class="seg-input-group"><label>Off</label><input type="text" value="${formatTime(s.off_duration)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'off_duration', this.value)"></div>
                 <div class="seg-input-group"><label>Off(%)</label><input type="number" value="${toPct(s.off_power)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'off_power', this.value)"></div>
             `;
+        } else if (s.type === 'IntervalsBlock3') {
+            cardStyle = `background: linear-gradient(90deg, ${getZoneBg(s.pwr1)}, ${getZoneBg(s.pwr2)}, ${getZoneBg(s.pwr3)}); border-color: ${getZoneColor(s.pwr2)};`;
+            inputs += `
+                <div class="seg-input-group"><label>Reps</label><input type="number" value="${s.repeat}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'repeat', this.value)"></div>
+                <div style="width:100%; height:1px; background:rgba(255,255,255,0.1); margin:5px 0;"></div>
+                <div class="seg-input-group"><label>D1</label><input type="text" value="${formatTime(s.dur1)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'dur1', this.value)"></div>
+                <div class="seg-input-group"><label>P1(%)</label><input type="number" value="${toPct(s.pwr1)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'pwr1', this.value)"></div>
+                <div class="seg-input-group"><label>D2</label><input type="text" value="${formatTime(s.dur2)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'dur2', this.value)"></div>
+                <div class="seg-input-group"><label>P2(%)</label><input type="number" value="${toPct(s.pwr2)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'pwr2', this.value)"></div>
+                <div class="seg-input-group"><label>D3</label><input type="text" value="${formatTime(s.dur3)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'dur3', this.value)"></div>
+                <div class="seg-input-group"><label>P3(%)</label><input type="number" value="${toPct(s.pwr3)}" style="${inputStyle}" ${selectOnClick} onchange="updateSegment(${s.id}, 'pwr3', this.value)"></div>
+            `;
         }
+
+        // Apply card style if modified inside the block
+        if (s.type === 'IntervalsBlock3') div.style = cardStyle;
 
         div.innerHTML = `
             <div class="drag-handle" title="Drag to reorder" style="color: rgba(255,255,255,0.7);">☰</div>
             <div class="segment-content-wrapper">
                 <div class="segment-header">
-                    <span class="segment-type" style="color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${s.type}</span>
+                    <span class="segment-type" style="color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+                        ${s.type === 'SteadyState' ? `Zone ${ZONES.indexOf(getZone(s.power)) + 1}` : s.type}
+                    </span>
                     <div class="segment-actions">
                          <button class="btn-icon" onclick="duplicateSegment(${s.id})" title="Duplicate">❐</button>
                          <button class="btn-icon btn-remove" onclick="removeSegment(${s.id})" title="Remove" style="color:white; opacity:0.8;">&times;</button>
@@ -413,20 +462,29 @@ function handleDragEnd(e) {
 
 
 // API Interactions
-// --- XML Generation and Parsing Logic (Client-Side) ---
-
+// --- XML Generation and Parsing Logic (Client-Side)// ZWO Generation
 function generateZWO(workout) {
-    const meta = workout.metadata;
+    // Normalize metadata: Handle both flat structure (Static) and nested metadata (Temp Save)
+    const meta = workout.metadata || {
+        name: workout.name || "Untitled Workout",
+        author: workout.author || "Zwifter",
+        description: workout.description || "",
+        sport_type: "bike",
+        tags: workout.tags || []
+    };
+
     let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n`;
     xml += `<workout_file>\n`;
     xml += `    <author>${escapeXml(meta.author)}</author>\n`;
     xml += `    <name>${escapeXml(meta.name)}</name>\n`;
     xml += `    <description>${escapeXml(meta.description)}</description>\n`;
-    xml += `    <sportType>${escapeXml(meta.sport_type)}</sportType>\n`;
+    xml += `    <sportType>${escapeXml(meta.sport_type || 'bike')}</sportType>\n`;
     xml += `    <tags>\n`;
-    meta.tags.forEach(tag => {
-        if(tag.trim()) xml += `        <tag name="${escapeXml(tag.trim())}"/>\n`;
-    });
+    if (meta.tags && Array.isArray(meta.tags)) {
+        meta.tags.forEach(tag => {
+            if (tag.trim()) xml += `        <tag name="${escapeXml(tag.trim())}"/>\n`;
+        });
+    }
     xml += `    </tags>\n`;
     xml += `    <workout>\n`;
 
@@ -441,6 +499,12 @@ function generateZWO(workout) {
             xml += `        <Ramp Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
         } else if (s.type === 'IntervalsT') {
             xml += `        <IntervalsT Repeat="${s.repeat}" OnDuration="${s.on_duration}" OffDuration="${s.off_duration}" OnPower="${s.on_power}" OffPower="${s.off_power}"/>\n`;
+        } else if (s.type === 'IntervalsBlock3') {
+            for (let i = 0; i < s.repeat; i++) {
+                xml += `        <SteadyState Duration="${s.dur1}" Power="${s.pwr1}"/>\n`;
+                xml += `        <SteadyState Duration="${s.dur2}" Power="${s.pwr2}"/>\n`;
+                xml += `        <SteadyState Duration="${s.dur3}" Power="${s.pwr3}"/>\n`;
+            }
         } else if (s.type === 'FreeRide') {
             xml += `        <FreeRide Duration="${s.duration}"/>\n`;
         } else if (s.type === 'MaxEffort') {
@@ -476,7 +540,7 @@ function parseZWO(xmlContent) {
     // Segments
     const segmentsList = [];
     const workoutElem = xmlDoc.getElementsByTagName("workout")[0];
-    
+
     if (workoutElem) {
         for (let i = 0; i < workoutElem.children.length; i++) {
             const child = workoutElem.children[i];
@@ -485,9 +549,9 @@ function parseZWO(xmlContent) {
             const parseFloatOrZero = (val) => parseFloat(val) || 0;
             const parseIntOrZero = (val) => parseInt(val) || 0;
 
-            let segment = { 
-                type: type, 
-                duration: parseIntOrZero(attr("Duration")) 
+            let segment = {
+                type: type,
+                duration: parseIntOrZero(attr("Duration"))
             };
 
             if (type === 'Warmup' || type === 'CoolDown' || type === 'Ramp') {
@@ -529,11 +593,23 @@ function escapeXml(unsafe) {
 
 // --- API Interactions Replacement ---
 
+function triggerDownload(xml, filename) {
+    const blob = new Blob([xml], { type: "application/xml" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
 function saveWorkout() {
     const workout = {
         metadata: {
             name: document.getElementById('workoutName').value || "My Workout",
-            author: document.getElementById('workoutAuthor').value || "Unknown",
+            author: document.getElementById('workoutAuthor').value || "Zwifter",
             description: document.getElementById('workoutDesc').value || "",
             tags: document.getElementById('workoutTags').value.split(',').map(t => t.trim()).filter(Boolean),
             sport_type: 'bike'
@@ -543,36 +619,57 @@ function saveWorkout() {
 
     try {
         const xmlContent = generateZWO(workout);
-        const blob = new Blob([xmlContent], { type: "application/xml" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${workout.metadata.name.replace(/\s+/g, '_')}.zwo`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        const filename = `${workout.metadata.name.replace(/\s+/g, '_')}.zwo`;
+        triggerDownload(xmlContent, filename);
     } catch (e) {
         console.error("Error generating ZWO:", e);
         alert("Failed to generate ZWO file.");
     }
 }
 
+function downloadLibraryWorkout(id) {
+    let item = null;
+
+    // Check if ID is string and starts with tmp_
+    if (String(id).startsWith('tmp_')) {
+        const lib = getTempSaves();
+        item = lib.find(i => i.id === id);
+    } else {
+        if (typeof STATIC_WORKOUTS !== 'undefined') {
+            item = STATIC_WORKOUTS.find(i => i.id == id);
+        }
+    }
+
+    if (!item) return;
+
+    // Construct workout object expected by generateZWO
+    // Saved items have { metadata: {...}, segments: [...] } matching structure
+    try {
+        const xml = generateZWO(item);
+        const filename = `${(item.name || "workout").replace(/\s+/g, '_')}.zwo`;
+        triggerDownload(xml, filename);
+    } catch (e) {
+        console.error("Error downloading from library:", e);
+        alert("Failed to download workout.");
+    }
+}
+
+
 function loadFile(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         try {
             const content = e.target.result;
             const data = parseZWO(content);
-            
+
             document.getElementById('workoutName').value = data.metadata.name;
             document.getElementById('workoutAuthor').value = data.metadata.author;
             document.getElementById('workoutDesc').value = data.metadata.description || "";
             document.getElementById('workoutTags').value = data.metadata.tags.join(', ');
-            
+
             segments = data.segments.map(s => ({ ...s, id: Date.now() + Math.random() }));
             updateUI();
         } catch (err) {
@@ -581,4 +678,205 @@ function loadFile(event) {
         }
     };
     reader.readAsText(file);
+}
+
+// --- TSS Calculation ---
+function calculateTSS() {
+    let totalTSS = 0;
+    segments.forEach(s => {
+        let durationSec = s.duration;
+        let intensity = 0;
+
+        if (s.type === 'SteadyState') {
+            intensity = s.power; // already fraction of FTP
+            totalTSS += (s.duration / 3600) * (intensity * intensity) * 100;
+        } else if (s.type === 'IntervalsT') {
+            // On segment
+            let onTSS = (s.on_duration / 3600) * (s.on_power * s.on_power) * 100;
+            // Off segment
+            let offTSS = (s.off_duration / 3600) * (s.off_power * s.off_power) * 100;
+            totalTSS += (onTSS + offTSS) * s.repeat;
+        } else if (s.type === 'IntervalsBlock3') {
+            let tss1 = (s.dur1 / 3600) * (s.pwr1 * s.pwr1) * 100;
+            let tss2 = (s.dur2 / 3600) * (s.pwr2 * s.pwr2) * 100;
+            let tss3 = (s.dur3 / 3600) * (s.pwr3 * s.pwr3) * 100;
+            totalTSS += (tss1 + tss2 + tss3) * s.repeat;
+        } else if (['Warmup', 'CoolDown', 'Ramp'].includes(s.type)) {
+            // Approximate linear ramp TSS: integrate (start + (end-start)*t/T)^2
+            // Simplification: use average power for short ramps
+            let meanSq = (Math.pow(s.power_low, 2) + s.power_low * s.power_high + Math.pow(s.power_high, 2)) / 3;
+            totalTSS += (s.duration / 3600) * meanSq * 100;
+        } else {
+            // FreeRide etc
+            totalTSS += (s.duration / 3600) * (0.5 * 0.5) * 100;
+        }
+    });
+    return Math.round(totalTSS);
+}
+
+
+// --- Workout Library & Temp Save ---
+
+function openLibrary() {
+    document.getElementById('libraryModal').style.display = 'flex';
+    // Pre-fill name if exists for temp save context (though now handled by specific button)
+    document.getElementById('libSaveName').value = document.getElementById('workoutName').value;
+    renderLibrary();
+}
+
+function closeLibrary() {
+    document.getElementById('libraryModal').style.display = 'none';
+}
+
+// Temp Save (LocalStorage)
+function getTempSaves() {
+    // Migrating or using new key? Let's use 'zwo_temp_saves'
+    const data = localStorage.getItem('zwo_temp_saves');
+    return data ? JSON.parse(data) : [];
+}
+
+function tempSave() {
+    const nameInput = document.getElementById('workoutName'); // Use main title
+    const name = nameInput.value.trim() || 'Untitled Workout';
+
+    if (segments.length === 0) { alert('Workout is empty! nothing to save.'); return; }
+
+    const lib = getTempSaves();
+
+    // Capture full metadata
+    const metadata = {
+        name: document.getElementById('workoutName').value,
+        author: document.getElementById('workoutAuthor').value,
+        description: document.getElementById('workoutDesc').value,
+        tags: document.getElementById('workoutTags').value
+    };
+
+    const newEntry = {
+        id: 'tmp_' + Date.now(), // Prefix to distinguish from static
+        name: name,
+        date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+        segments: segments,
+        metadata: metadata,
+        source: 'local'
+    };
+
+    lib.unshift(newEntry);
+    localStorage.setItem('zwo_temp_saves', JSON.stringify(lib));
+
+    alert('Saved to Temp Storage!');
+    // If library modal is open, refresh it. If not, maybe just alert is fine?
+    // User clicked "Temp Save" button on header, so modal might not be open.
+}
+
+function deleteTempSave(id) {
+    if (!confirm('Delete this temp save?')) return;
+    let lib = getTempSaves();
+    lib = lib.filter(item => item.id !== id);
+    localStorage.setItem('zwo_temp_saves', JSON.stringify(lib));
+    renderLibrary();
+}
+
+function loadLibraryItem(id) {
+    let entry = null;
+
+    // Check if ID is string and starts with tmp_
+    if (String(id).startsWith('tmp_')) {
+        const lib = getTempSaves();
+        entry = lib.find(item => item.id === id);
+    } else {
+        // Static
+        if (typeof STATIC_WORKOUTS !== 'undefined') {
+            entry = STATIC_WORKOUTS.find(item => item.id == id);
+        }
+    }
+
+    if (entry) {
+        // Restore segments
+        segments = JSON.parse(JSON.stringify(entry.segments));
+        // New random IDs for segments
+        segments.forEach(s => s.id = Date.now() + Math.random());
+
+        // Restore Metadata
+        if (entry.metadata) {
+            document.getElementById('workoutName').value = entry.metadata.name || entry.name;
+            document.getElementById('workoutAuthor').value = entry.metadata.author || "Zwifter";
+            document.getElementById('workoutDesc').value = entry.metadata.description || "";
+            document.getElementById('workoutTags').value = entry.metadata.tags || "";
+        } else {
+            // Static workouts might not have full metadata obj, use root props
+            document.getElementById('workoutName').value = entry.name;
+            document.getElementById('workoutAuthor').value = "Zwifter"; // Default
+            document.getElementById('workoutDesc').value = entry.description || "";
+            document.getElementById('workoutTags').value = (entry.tags || []).join(', ');
+        }
+
+        updateUI();
+        closeLibrary();
+    }
+}
+
+function renderLibrary() {
+    const list = document.getElementById('libraryList');
+    list.innerHTML = '';
+
+    // 1. Temp Saves Section
+    const tempSaves = getTempSaves();
+    if (tempSaves.length > 0) {
+        const header = document.createElement('h4');
+        header.style.color = '#888';
+        header.style.marginTop = '0';
+        header.textContent = 'Temp Saved (Local)';
+        list.appendChild(header);
+
+        tempSaves.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'lib-item';
+            div.innerHTML = `
+                <div class="lib-info">
+                    <div class="lib-name">${item.name}</div>
+                    <div class="lib-date">${item.date} • ${item.segments.length} segs</div>
+                </div>
+                <div class="lib-actions">
+                    <button class="lib-btn lib-load" onclick="loadLibraryItem('${item.id}')">Load</button>
+                    <button class="lib-btn lib-dl" onclick="downloadLibraryWorkout('${item.id}')" style="background:#444; color:white; border:none; padding:5px 10px; border-radius:4px; margin-right:5px; cursor:pointer;">DL</button>
+                    <button class="lib-btn lib-del" onclick="deleteTempSave('${item.id}')">Del</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+
+        const hr = document.createElement('hr');
+        hr.style.borderColor = '#444';
+        hr.style.margin = '15px 0';
+        list.appendChild(hr);
+    }
+
+    // 2. Static Workouts Section
+    const staticHeader = document.createElement('h4');
+    staticHeader.style.color = '#888';
+    staticHeader.style.marginTop = '0';
+    staticHeader.textContent = 'Standard Library';
+    list.appendChild(staticHeader);
+
+    if (typeof STATIC_WORKOUTS === 'undefined' || STATIC_WORKOUTS.length === 0) {
+        const msg = document.createElement('div');
+        msg.innerHTML = '<div style="padding:10px; color:#666;">No standard workouts found.</div>';
+        list.appendChild(msg);
+    } else {
+        STATIC_WORKOUTS.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'lib-item';
+            div.innerHTML = `
+                <div class="lib-info">
+                    <div class="lib-name">${item.name}</div>
+                    <div class="lib-date">${item.description || ''}</div>
+                </div>
+                <div class="lib-actions">
+                    <button class="lib-btn lib-load" onclick="loadLibraryItem('${item.id}')">Load</button>
+                    <button class="lib-btn lib-dl" onclick="downloadLibraryWorkout('${item.id}')" style="background:#444; color:white; border:none; padding:5px 10px; border-radius:4px; margin-right:5px; cursor:pointer;">DL</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
 }

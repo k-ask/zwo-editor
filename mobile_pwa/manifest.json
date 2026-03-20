@@ -1,0 +1,21 @@
+{
+    "name": "ZWO Editor Mobile",
+    "short_name": "ZWO Mobile",
+    "description": "Mobile-optimized ZWO (Zwift Workout) Editor",
+    "start_url": "/zwo-editor-mobile/",
+    "display": "standalone",
+    "background_color": "#1e1e1e",
+    "theme_color": "#ff6924",
+    "icons": [
+        {
+            "src": "https://raw.githubusercontent.com/k-ask/zwo-editor/main/icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://raw.githubusercontent.com/k-ask/zwo-editor/main/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
