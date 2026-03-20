@@ -272,10 +272,8 @@ function removeSegment(id) {
 }
 
 function clearAllSegments() {
-    if (confirm("Are you sure you want to clear all segments?")) {
-        segments = [];
-        updateUI();
-    }
+    segments = [];
+    updateUI();
 }
 
 function updateSegment(id, field, value) {
@@ -793,29 +791,27 @@ function loadLibraryItem(id) {
     }
 
     if (entry) {
-        if (confirm(`Load "${entry.name}"? Unsaved changes will be lost.`)) {
-            // Restore segments
-            segments = JSON.parse(JSON.stringify(entry.segments));
-            // New random IDs for segments
-            segments.forEach(s => s.id = Date.now() + Math.random());
+        // Restore segments
+        segments = JSON.parse(JSON.stringify(entry.segments));
+        // New random IDs for segments
+        segments.forEach(s => s.id = Date.now() + Math.random());
 
-            // Restore Metadata
-            if (entry.metadata) {
-                document.getElementById('workoutName').value = entry.metadata.name || entry.name;
-                document.getElementById('workoutAuthor').value = entry.metadata.author || "Zwifter";
-                document.getElementById('workoutDesc').value = entry.metadata.description || "";
-                document.getElementById('workoutTags').value = entry.metadata.tags || "";
-            } else {
-                // Static workouts might not have full metadata obj, use root props
-                document.getElementById('workoutName').value = entry.name;
-                document.getElementById('workoutAuthor').value = "Zwifter"; // Default
-                document.getElementById('workoutDesc').value = entry.description || "";
-                document.getElementById('workoutTags').value = (entry.tags || []).join(', ');
-            }
-
-            updateUI();
-            closeLibrary();
+        // Restore Metadata
+        if (entry.metadata) {
+            document.getElementById('workoutName').value = entry.metadata.name || entry.name;
+            document.getElementById('workoutAuthor').value = entry.metadata.author || "Zwifter";
+            document.getElementById('workoutDesc').value = entry.metadata.description || "";
+            document.getElementById('workoutTags').value = entry.metadata.tags || "";
+        } else {
+            // Static workouts might not have full metadata obj, use root props
+            document.getElementById('workoutName').value = entry.name;
+            document.getElementById('workoutAuthor').value = "Zwifter"; // Default
+            document.getElementById('workoutDesc').value = entry.description || "";
+            document.getElementById('workoutTags').value = (entry.tags || []).join(', ');
         }
+
+        updateUI();
+        closeLibrary();
     }
 }
 
