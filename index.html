@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zwift Workout Editor</title>
+    <style>
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background: #1e1e1e; color: #fff; text-align: center; padding-top: 50px; }
+        a { color: #ff6924; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        .spinner { margin: 20px auto; width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left-color: #ff6924; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+    <script>
+        // Simple device detection to route to the correct app version
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+                    window.location.replace('./mobile_pwa/index.html');
+                } else {
+                    window.location.replace('./desktop_app/index.html');
+                }
+            }, 100); // Small delay to ensure smooth transition
+        });
+    </script>
+</head>
+<body>
+    <h1>ZWO Editor</h1>
+    <div class="spinner"></div>
+    <p>Loading application...</p>
+    <div style="margin-top: 30px; font-size: 0.9em; color:#aaa;">
+        <p>If you are not redirected automatically, please choose:</p>
+        <p><a href="./desktop_app/index.html">Desktop Version (PC)</a></p>
+        <p><a href="./mobile_pwa/index.html">Mobile Version (Smartphone)</a></p>
+    </div>
+</body>
+</html>
