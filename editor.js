@@ -261,7 +261,7 @@ function duplicateSegment(id) {
         const original = segments[idx];
         const copy = JSON.parse(JSON.stringify(original));
         copy.id = Date.now() + Math.random();
-        segments.splice(idx + 1, 0, copy);
+        segments.push(copy);
         updateUI();
     }
 }
@@ -269,6 +269,13 @@ function duplicateSegment(id) {
 function removeSegment(id) {
     segments = segments.filter(s => s.id !== id);
     updateUI();
+}
+
+function clearAllSegments() {
+    if (confirm("Are you sure you want to clear all segments?")) {
+        segments = [];
+        updateUI();
+    }
 }
 
 function updateSegment(id, field, value) {

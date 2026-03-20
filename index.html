@@ -10,7 +10,7 @@
     <!-- Chart.js for visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
-    <script src="workouts.js?t=1772429345"></script>
+    <script src="workouts.js?t=1772495699"></script>
     <script src="editor.js" defer></script>
 </head>
 
@@ -44,8 +44,9 @@
             <!-- Left Column: Segment List (Full Height) -->
             <section class="segments-column">
                 <div class="segments-area">
-                    <div class="segments-toolbar">
+                    <div class="segments-toolbar" style="display:flex; justify-content:space-between; align-items:center;">
                         <h3>Segments</h3>
+                        <button class="btn-sm" onclick="clearAllSegments()" style="background:#cc4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer;" title="Clear all segments">Clear All</button>
                     </div>
                     <div class="add-buttons">
                         <button class="btn-sm" onclick="addSegment('Warmup')">Warmup</button>
