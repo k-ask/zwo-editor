@@ -20,7 +20,9 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "[2/4] 📦 変更されたファイルのチェック中..."
+echo "[2/4] 📦 独立版(Standalone)の生成とファイルのチェック中..."
+python3 build_standalone.py
+
 git add .
 
 # 変更がなければスキップ

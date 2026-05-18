@@ -7,6 +7,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "📦 独立版(Standalone)ファイルを生成しています..."
+python3 build_standalone.py
+
 echo "📦 変更をGitに追加しています..."
 git add .
 

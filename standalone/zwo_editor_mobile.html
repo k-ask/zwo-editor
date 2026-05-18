@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZWO Editor Mobile</title>
+    <style>
+:root {
+    --bg-color: #1e1e1e;
+    --card-bg: #2d2d2d;
+    --text-color: #ffffff;
+    --accent-color: #ff6924;
+    /* Zwift Orange */
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    height: 100vh;
+    height: 100dvh;
+    /* Better for mobile */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent body scroll */
+    max-width: 100vw;
+    /* Ensure no overflow */
+}
+
+/* ... existing styles ... */
+
+header {
+    background: #121212;
+    padding: 10px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    border-bottom: 1px solid #333;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+header h1 {
+    font-size: 1.2rem;
+    margin: 0;
+    color: var(--accent-color);
+}
+
+.stats {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+#totalDuration {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+#graphContainer {
+    height: 120px;
+    /* Reduced from 180px */
+    background: #121212;
+    padding: 5px 10px;
+    flex-shrink: 0;
+}
+
+.quick-add-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 10px;
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.qa-row {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    scrollbar-width: none;
+}
+
+.qa-row::-webkit-scrollbar {
+    display: none;
+}
+
+.zones .qa-btn {
+    padding: 6px 12px;
+    min-width: 45px;
+    text-align: center;
+}
+
+.z1 {
+    border-bottom: 3px solid #7f7f7f !important;
+}
+
+.z2 {
+    border-bottom: 3px solid #3284c9 !important;
+}
+
+.z3 {
+    border-bottom: 3px solid #5aca5a !important;
+}
+
+.z4 {
+    border-bottom: 3px solid #ffca28 !important;
+}
+
+.z5 {
+    border-bottom: 3px solid #ff6924 !important;
+}
+
+.z6 {
+    border-bottom: 3px solid #ff3737 !important;
+}
+
+.qa-btn {
+    flex: 0 0 auto;
+    background: #333;
+    border: none;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+#segmentsList {
+    flex: 1;
+    /* Take remaining vertical space */
+    overflow-y: auto;
+    /* Scroll internally */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling */
+    padding: 0 8px 20px 8px;
+    /* Increase side padding slightly and bottom space */
+    width: 100%;
+    /* Ensure full width */
+    max-width: 100%;
+    /* Prevent overflow */
+}
+
+#segmentsList::-webkit-scrollbar {
+    width: 6px;
+    background: transparent;
+}
+
+#segmentsList::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+/* Segment Card Styling */
+.segment-item {
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    border-left: 4px solid var(--accent-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    touch-action: pan-y;
+    /* Allow vertical scroll on the card body */
+}
+
+.segment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    /* This will be the drag handle */
+    touch-action: none;
+    /* Prevent browser scroll on the header/handle */
+    padding: 4px 0;
+    /* Increase touch target slightly */
+}
+
+.segment-type {
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.segment-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    padding: 2px 5px;
+}
+
+/* Mobile Inputs - Compact Horizontal */
+.segment-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.seg-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #444;
+}
+
+.seg-input-group label {
+    font-size: 0.75rem;
+    color: #bbb;
+    margin-right: 2px;
+}
+
+.seg-input-group input {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 2px;
+    font-size: 0.9rem;
+    width: 60px;
+    /* Fixed width >10m */
+    text-align: right;
+    outline: none;
+}
+
+.unit-label {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* Bottom Bar */
+.bottom-bar {
+    width: 100%;
+    background: #121212;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    border-top: 1px solid #333;
+    flex-shrink: 0;
+    /* Don't shrink */
+    z-index: 50;
+    /* Ensure on top */
+}
+
+.bottom-bar button {
+    background: #333;
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    width: 85%;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.type-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.type-grid button {
+    background: #444;
+    border: none;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+}
+
+.close-modal {
+    background: none;
+    border: 1px solid #555;
+    color: #888;
+    padding: 10px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.lib-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    background: #2a2a2a;
+}
+
+.lib-item:last-child {
+    border-bottom: none;
+}
+
+.lib-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.lib-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.lib-date {
+    color: #888;
+    font-size: 0.75rem;
+}
+
+.lib-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.lib-btn {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: none;
+    font-size: 0.8rem;
+    color: white;
+}
+
+.lib-load {
+    background: #3284c9;
+}
+
+.lib-del {
+    background: #c93232;
+}
+</style>
+        <meta name="theme-color" content="#1e1e1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header>
+        <div style="font-size:0.8rem; margin-bottom:2px;"><a href="https://k-ask.github.io/zwo-editor/" target="_blank"
+                style="color:#608ac1; text-decoration:underline;">Switch to Desktop View</a></div>
+        <h1>ZWO editor mobile <span style="font-size:0.8rem; color:#888;">v1.3</span> <span
+                style="font-size:0.8rem; color:#888; margin-left:5px;">made by</span> <a
+                href="https://www.youtube.com/@velo-ology" target="_blank"
+                style="font-size:0.8rem; color:#608ac1; text-decoration:underline;">"velo-ology ch"</a></h1>
+        <div class="stats">
+            <div id="totalDuration">00:00</div>
+            <div id="totalTSS" style="margin-left:10px; color:#aaa; font-size:0.9rem;">TSS: 0</div>
+        </div>
+    </header>
+
+    <div id="graphContainer">
+        <canvas id="workoutChart"></canvas>
+    </div>
+
+    <div class="quick-add-toolbar">
+        <div class="qa-row">
+            <button onclick="handleAdd('Warmup')" class="qa-btn">Ramp Up</button>
+            <button onclick="handleAdd('CoolDown')" class="qa-btn">RampDown</button>
+            <button onclick="handleAdd('IntervalsT')" class="qa-btn">Intervals</button>
+            <button onclick="handleAdd('IntervalsBlock3')" class="qa-btn">Intervals 3</button>
+        </div>
+        <div class="qa-row zones">
+            <button onclick="handleAdd('SteadyState', {power: 0.50})" class="qa-btn z1">Z1</button>
+            <button onclick="handleAdd('SteadyState', {power: 0.65})" class="qa-btn z2">Z2</button>
+            <button onclick="handleAdd('SteadyState', {power: 0.80})" class="qa-btn z3">Z3</button>
+            <button onclick="handleAdd('SteadyState', {power: 0.95})" class="qa-btn z4">Z4</button>
+            <button onclick="handleAdd('SteadyState', {power: 1.10})" class="qa-btn z5">Z5</button>
+            <button onclick="handleAdd('SteadyState', {power: 1.25})" class="qa-btn z6">Z6</button>
+        </div>
+    </div>
+
+    <main id="segmentsList">
+        <!-- Segments will be injected here -->
+    </main>
+
+    <nav class="toolbar">
+        <button class="tool-btn" onclick="openLibrary()">Library</button>
+        <button class="tool-btn" onclick="document.getElementById('fileInput').click()">Import</button>
+        <button class="tool-btn" onclick="saveWorkout()">Export</button>
+        <button class="tool-btn" onclick="clearAllSegments()" style="color: #ff5555;">Clear</button>
+    </nav>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" accept=".zwo" style="display: none;">
+
+    <!-- Library Modal -->
+    <div id="libraryModal" class="modal">
+        <div class="modal-content" style="text-align: left;">
+            <h3>Workout Library</h3>
+            <div style="margin-bottom:10px; color:#aaa; font-size:0.9rem;">
+                Select a workout to load:
+            </div>
+            <div id="libraryList"
+                style="max-height:300px; overflow-y:auto; margin-bottom:15px; border:1px solid #444; border-radius:5px;">
+                <!-- List injected here -->
+            </div>
+            <button class="close-modal" onclick="closeLibrary()">Close</button>
+        </div>
+    </div>
+
+    <!-- Segment Type Modal -->
+    <div id="typeModal" class="modal">
+        <div class="modal-content">
+            <h3>Add Segment</h3>
+            <div class="type-grid">
+                <button onclick="handleAdd('Warmup')">Warmup</button>
+                <button onclick="handleAdd('SteadyState')">Steady</button>
+                <button onclick="handleAdd('IntervalsT')">Intervals (2-Step)</button>
+                <button onclick="handleAdd('IntervalsBlock3')">Intervals (3-Step)</button>
+                <button onclick="handleAdd('CoolDown')">CoolDown</button>
+                <button onclick="handleAdd('FreeRide')">FreeRide</button>
+            </div>
+            <button class="close-modal" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+// ユーザー定義ワークアウトリスト
+// 自動生成されたファイルです。手動で編集しないでください。
+// workouts/ フォルダ内のファイルを編集し、update_library.py を実行してください。
+
+const STATIC_WORKOUTS = [
+    {
+        "id": "CrissCross Workout",
+        "name": "CrissCross long",
+        "description": "CrissCross modified",
+        "segments": [
+            {
+                "type": "Warmup",
+                "duration": 300,
+                "power_low": 0.5,
+                "power_high": 0.6
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 0.8
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 45,
+                "power": 1.0
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.2
+            },
+            {
+                "type": "SteadyState",
+                "duration": 105,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
+                "on_power": 1.1,
+                "off_power": 0.85
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.75
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
+                "on_power": 1.1,
+                "off_power": 0.85
+            },
+            {
+                "type": "CoolDown",
+                "duration": 300,
+                "power_low": 0.6,
+                "power_high": 0.4
+            }
+        ]
+    },
+    {
+        "id": "CrissCross Zwift Workout",
+        "name": "CrissCross",
+        "description": "Standard CrissCross",
+        "segments": [
+            {
+                "type": "Warmup",
+                "duration": 300,
+                "power_low": 0.5,
+                "power_high": 0.6
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 0.8
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 45,
+                "power": 1.0
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.2
+            },
+            {
+                "type": "SteadyState",
+                "duration": 105,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 8,
+                "on_duration": 30,
+                "off_duration": 120,
+                "on_power": 1.2,
+                "off_power": 0.9
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 8,
+                "on_duration": 30,
+                "off_duration": 120,
+                "on_power": 1.2,
+                "off_power": 0.9
+            },
+            {
+                "type": "CoolDown",
+                "duration": 300,
+                "power_low": 0.6,
+                "power_high": 0.4
+            }
+        ]
+    },
+    {
+        "id": "CrissCross_-1",
+        "name": "CrissCross -1",
+        "description": "CrissCross modified",
+        "segments": [
+            {
+                "type": "Warmup",
+                "duration": 300,
+                "power_low": 0.5,
+                "power_high": 0.6
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 0.8
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 45,
+                "power": 1.0
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.2
+            },
+            {
+                "type": "SteadyState",
+                "duration": 105,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
+                "on_power": 1.2,
+                "off_power": 0.9
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.5
+            },
+            {
+                "type": "IntervalsT",
+                "duration": 0,
+                "repeat": 6,
+                "on_duration": 30,
+                "off_duration": 180,
+                "on_power": 1.2,
+                "off_power": 0.9
+            },
+            {
+                "type": "CoolDown",
+                "duration": 300,
+                "power_low": 0.6,
+                "power_high": 0.4
+            }
+        ]
+    },
+    {
+        "id": "mywhoosh_45min",
+        "name": "45minL3-5build-up",
+        "description": "mywhoosh - 45minL3-5build-up",
+        "segments": [
+            {
+                "type": "Warmup",
+                "duration": 600,
+                "power_low": 0.5,
+                "power_high": 0.7
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.8
+            },
+            {
+                "type": "SteadyState",
+                "duration": 180,
+                "power": 0.9
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 1.0
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.86
+            },
+            {
+                "type": "SteadyState",
+                "duration": 180,
+                "power": 0.9
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 1.05
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.86
+            },
+            {
+                "type": "SteadyState",
+                "duration": 180,
+                "power": 0.95
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 1.1
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.86
+            },
+            {
+                "type": "SteadyState",
+                "duration": 180,
+                "power": 0.95
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 1.15
+            },
+            {
+                "type": "SteadyState",
+                "duration": 300,
+                "power": 0.86
+            },
+            {
+                "type": "SteadyState",
+                "duration": 180,
+                "power": 0.95
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 1.21
+            },
+            {
+                "type": "CoolDown",
+                "duration": 300,
+                "power_low": 0.5,
+                "power_high": 0.3
+            }
+        ]
+    },
+    {
+        "id": "mywhoosh_hidit",
+        "name": "HIDIT",
+        "description": "mywhoosh - hidit",
+        "segments": [
+            {
+                "type": "Warmup",
+                "duration": 120,
+                "power_low": 0.5,
+                "power_high": 0.6
+            },
+            {
+                "type": "SteadyState",
+                "duration": 360,
+                "power": 0.6
+            },
+            {
+                "type": "Warmup",
+                "duration": 120,
+                "power_low": 0.65,
+                "power_high": 1.4
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 0.55
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 1.35
+            },
+            {
+                "type": "SteadyState",
+                "duration": 170,
+                "power": 0.55
+            },
+            {
+                "type": "SteadyState",
+                "duration": 180,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 120,
+                "power": 0.55
+            },
+            {
+                "type": "SteadyState",
+                "duration": 120,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 90,
+                "power": 0.55
+            },
+            {
+                "type": "SteadyState",
+                "duration": 90,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 0.55
+            },
+            {
+                "type": "SteadyState",
+                "duration": 60,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 40,
+                "power": 0.55
+            },
+            {
+                "type": "SteadyState",
+                "duration": 40,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 20,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 20,
+                "power": 0.5
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 20,
+                "power": 0.4
+            },
+            {
+                "type": "SteadyState",
+                "duration": 30,
+                "power": 1.3
+            },
+            {
+                "type": "SteadyState",
+                "duration": 20,
+                "power": 0.4
+            },
+            {
+                "type": "CoolDown",
+                "duration": 300,
+                "power_low": 0.55,
+                "power_high": 0.4
+            }
+        ]
+    }
+];
+
+</script>
+    <script>
+let chart;
+let segments = [];
+
+// Zwift Power Zones
+const ZONES = [
+    { limit: 0.60, color: '#7f7f7f', bg: 'rgba(127, 127, 127, 0.2)' },
+    { limit: 0.76, color: '#3284c9', bg: 'rgba(50, 132, 201, 0.2)' },
+    { limit: 0.90, color: '#5aca5a', bg: 'rgba(90, 202, 90, 0.2)' },
+    { limit: 1.05, color: '#ffca28', bg: 'rgba(255, 202, 40, 0.2)' },
+    { limit: 1.19, color: '#ff6924', bg: 'rgba(255, 105, 36, 0.2)' },
+    { limit: 99.9, color: '#ff3737', bg: 'rgba(255, 55, 55, 0.2)' }
+];
+
+function getZone(power) {
+    for (let z of ZONES) if (power < z.limit) return z;
+    return ZONES[ZONES.length - 1];
+}
+
+// Time Helpers
+function formatTime(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}:${String(sec).padStart(2, '0')}`;
+}
+
+function parseTime(input) {
+    if (!input) return 0;
+    const parts = input.toString().split(':');
+    return parts.length === 2 ? parseInt(parts[0]) * 60 + parseInt(parts[1]) : parseInt(input);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        if (typeof Chart !== 'undefined') {
+            initChart();
+        } else {
+            console.warn('Chart.js not loaded');
+            document.getElementById('graphContainer').innerHTML = "<div style='padding:20px;text-align:center;color:#666;'>Graph unavailable (offline)</div>";
+        }
+    } catch (e) {
+        console.error("Chart init failed", e);
+    }
+
+    // document.getElementById('addBtn').addEventListener('click', showModal); // Removed: Not exists in mobile
+    document.getElementById('loadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change', loadFile);
+    document.getElementById('saveBtn').addEventListener('click', saveWorkout);
+
+    // Initial Defaults
+    // Initial Defaults - Updated to just Warmup 10min
+    segments = []; // Ensure empty
+    addSegment('Warmup', { duration: 600, power_low: 0.25, power_high: 0.75 });
+
+    try {
+        updateUI();
+
+        // Check for URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('segments')) {
+            try {
+                const segData = JSON.parse(decodeURIComponent(urlParams.get('segments')));
+                const name = urlParams.get('name') ? decodeURIComponent(urlParams.get('name')) : 'Imported Workout';
+                if (Array.isArray(segData)) {
+                    // Load data
+                    segments = segData;
+                    // Ensure IDs
+                    segments.forEach(s => { if (!s.id) s.id = Date.now() + Math.random(); });
+                    document.title = name + " - ZWO Editor";
+                    // Just a visual cue? Maybe show an alert or just update UI.
+                    updateUI();
+                    console.log("Loaded workout from URL:", name);
+                }
+            } catch (e) {
+                console.error("Failed to parse URL segments", e);
+            }
+        }
+
+    } catch (e) {
+        console.error("UI update failed", e);
+    }
+});
+
+function showModal() { document.getElementById('typeModal').style.display = 'flex'; }
+function closeModal() { document.getElementById('typeModal').style.display = 'none'; }
+function handleAdd(type, defaults = {}) {
+    addSegment(type, defaults);
+    closeModal();
+}
+
+function initChart() {
+    const ctx = document.getElementById('workoutChart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                data: [], borderWidth: 0, pointRadius: 0, fill: true, tension: 0, segment: {
+                    backgroundColor: c => {
+                        const y = (c.p0.parsed.y + c.p1.parsed.y) / 2;
+                        return getZone(y).color + 'cc';
+                    }
+                }
+            }]
+        },
+        options: {
+            animation: false, responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { type: 'linear', display: false },
+                y: { display: false, beginAtZero: true, suggestedMax: 1.2 }
+            },
+            plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
+    });
+}
+
+function updateUI() {
+    renderSegmentsList();
+    updateChart();
+    updateStats();
+}
+
+function calculateTSS() {
+    let totalTSS = 0;
+    segments.forEach(s => {
+        let durationSec = s.duration;
+        let intensity = 0;
+
+        if (s.type === 'SteadyState') {
+            intensity = s.power; // already fraction of FTP
+            totalTSS += (s.duration / 3600) * (intensity * intensity) * 100;
+        } else if (s.type === 'IntervalsT') {
+            // On segment
+            let onTSS = (s.on_duration / 3600) * (s.on_power * s.on_power) * 100;
+            // Off segment
+            let offTSS = (s.off_duration / 3600) * (s.off_power * s.off_power) * 100;
+            totalTSS += (onTSS + offTSS) * s.repeat;
+        } else if (s.type === 'IntervalsBlock3') {
+            let tss1 = (s.dur1 / 3600) * (s.pwr1 * s.pwr1) * 100;
+            let tss2 = (s.dur2 / 3600) * (s.pwr2 * s.pwr2) * 100;
+            let tss3 = (s.dur3 / 3600) * (s.pwr3 * s.pwr3) * 100;
+            totalTSS += (tss1 + tss2 + tss3) * s.repeat;
+        } else if (['Warmup', 'CoolDown', 'Ramp'].includes(s.type)) {
+            // Approximate linear ramp TSS: integrate (start + (end-start)*t/T)^2
+            // Simplification: use average power for short ramps, or exact formula
+            // Exact: (1/3) * (low^2 + low*high + high^2)
+            let meanSq = (Math.pow(s.power_low, 2) + s.power_low * s.power_high + Math.pow(s.power_high, 2)) / 3;
+            totalTSS += (s.duration / 3600) * meanSq * 100;
+        } else {
+            // FreeRide etc assuming 0.5 intensity for TSS estimate? or 0
+            totalTSS += (s.duration / 3600) * (0.5 * 0.5) * 100;
+        }
+    });
+    return Math.round(totalTSS);
+}
+
+
+function updateStats() {
+    let totalSec = 0;
+    segments.forEach(s => {
+        if (s.type === 'IntervalsT') totalSec += s.repeat * (s.on_duration + s.off_duration);
+        else if (s.type === 'IntervalsBlock3') totalSec += s.repeat * (s.dur1 + s.dur2 + s.dur3);
+        else totalSec += s.duration;
+    });
+    document.getElementById('totalDuration').innerText = formatTime(totalSec);
+    document.getElementById('totalTSS').innerText = `TSS: ${calculateTSS()}`;
+}
+
+function updateChart() {
+    const data = [];
+    let currentTime = 0;
+    segments.forEach(s => {
+        if (['Warmup', 'CoolDown', 'Ramp'].includes(s.type)) {
+            data.push({ x: currentTime, y: s.power_low });
+            currentTime += s.duration;
+            data.push({ x: currentTime, y: s.power_high });
+        } else if (s.type === 'SteadyState') {
+            data.push({ x: currentTime, y: s.power });
+            currentTime += s.duration;
+            data.push({ x: currentTime, y: s.power });
+        } else if (s.type === 'IntervalsT') {
+            for (let i = 0; i < s.repeat; i++) {
+                data.push({ x: currentTime, y: s.on_power });
+                currentTime += s.on_duration;
+                data.push({ x: currentTime, y: s.on_power });
+                data.push({ x: currentTime, y: s.off_power });
+                currentTime += s.off_duration;
+                data.push({ x: currentTime, y: s.off_power });
+            }
+        } else if (s.type === 'IntervalsBlock3') {
+            for (let i = 0; i < s.repeat; i++) {
+                // Step 1
+                data.push({ x: currentTime, y: s.pwr1 });
+                currentTime += s.dur1;
+                data.push({ x: currentTime, y: s.pwr1 });
+                // Step 2
+                data.push({ x: currentTime, y: s.pwr2 });
+                currentTime += s.dur2;
+                data.push({ x: currentTime, y: s.pwr2 });
+                // Step 3
+                data.push({ x: currentTime, y: s.pwr3 });
+                currentTime += s.dur3;
+                data.push({ x: currentTime, y: s.pwr3 });
+            }
+        } else {
+            data.push({ x: currentTime, y: 0.5 });
+            currentTime += s.duration;
+            data.push({ x: currentTime, y: 0.5 });
+        }
+    });
+    if (chart) {
+        try {
+            chart.data.datasets[0].data = data;
+            chart.update();
+        } catch (e) {
+            console.warn("Chart update failed", e);
+        }
+    }
+}
+
+function addSegment(type, defaults = {}) {
+    const base = { id: Date.now() + Math.random(), type, duration: 300 };
+    if (type === 'Warmup' || type === 'Ramp') { base.power_low = 0.25; base.power_high = 0.75; }
+    else if (type === 'CoolDown') { base.power_low = 0.75; base.power_high = 0.25; }
+    else if (type === 'SteadyState') { base.power = 0.85; }
+    else if (type === 'IntervalsT') { base.repeat = 5; base.on_duration = 60; base.off_duration = 60; base.on_power = 1.0; base.off_power = 0.5; base.duration = 0; }
+    else if (type === 'IntervalsBlock3') {
+        base.repeat = 3;
+        base.dur1 = 60; base.pwr1 = 0.65;
+        base.dur2 = 60; base.pwr2 = 0.85;
+        base.dur3 = 60; base.pwr3 = 1.05;
+        base.duration = 0;
+    }
+
+    segments.push({ ...base, ...defaults });
+    updateUI();
+}
+
+function removeSegment(id) {
+    segments = segments.filter(s => s.id !== id);
+    updateUI();
+}
+
+function moveSegment(id, dir) {
+    const idx = segments.findIndex(s => s.id === id);
+    if (idx === -1) return;
+    const newIdx = idx + dir;
+    if (newIdx >= 0 && newIdx < segments.length) {
+        const temp = segments[idx];
+        segments[idx] = segments[newIdx];
+        segments[newIdx] = temp;
+        updateUI();
+    }
+}
+
+function updateSegment(id, field, value) {
+    const s = segments.find(s => s.id === id);
+    if (!s) return;
+    if (field.includes('power') || field.includes('pwr')) s[field] = parseFloat(value) / 100;
+    else if (field.includes('duration') || field.includes('dur')) s[field] = parseTime(value);
+    else s[field] = parseInt(value);
+    updateUI();
+}
+
+function copySegment(id) {
+    const idx = segments.findIndex(s => s.id === id);
+    if (idx === -1) return;
+
+    // Deep copy the segment
+    const newSegment = JSON.parse(JSON.stringify(segments[idx]));
+    newSegment.id = Date.now() + Math.random(); // Assign new ID
+
+    // Append to end
+    segments.push(newSegment);
+    updateUI();
+}
+
+function clearAllSegments() {
+    segments = [];
+    updateUI();
+}
+
+// Touch-friendly Drag and Drop
+let touchStartY = 0;
+let draggedElement = null;
+let initialIdx = -1;
+
+function handleTouchStart(e) {
+    // Only allow drag if touching the handle specifically (the "hamburger" icon)
+    // We assume the handle has a class 'drag-handle' or 'segment-header' BUT user asked for "three lines mark"
+    if (!e.target.closest('.drag-handle-icon')) return;
+
+    // Find the draggable segment item
+    draggedElement = e.currentTarget.closest('.segment-item');
+    if (!draggedElement) return;
+
+    const touch = e.touches[0];
+    touchStartY = touch.clientY;
+    initialIdx = parseInt(draggedElement.dataset.index);
+
+    // Add a slight delay to distinguish from scroll
+    draggedElement.style.transition = 'none';
+    draggedElement.style.opacity = '0.7';
+    draggedElement.style.zIndex = '1000';
+
+    // Prevent scrolling while dragging
+    document.body.style.overflow = 'hidden';
+}
+
+function handleTouchMove(e) {
+    if (!draggedElement) return;
+    const touch = e.touches[0];
+    const diff = touch.clientY - touchStartY;
+
+    // Always prevent default scrolling when dragging is active
+    if (e.cancelable) e.preventDefault();
+
+    draggedElement.style.transform = `translateY(${diff}px)`;
+
+    const elements = Array.from(document.querySelectorAll('.segment-item'));
+    const target = elements.find(el => {
+        if (el === draggedElement) return false;
+        const rect = el.getBoundingClientRect();
+        return touch.clientY > rect.top && touch.clientY < rect.bottom;
+    });
+
+    if (target) {
+        const targetIdx = parseInt(target.dataset.index);
+        if (targetIdx !== initialIdx) {
+            const item = segments.splice(initialIdx, 1)[0];
+            segments.splice(targetIdx, 0, item);
+            initialIdx = targetIdx;
+            renderSegmentsList();
+            // Re-bind dragged element
+            draggedElement = document.querySelector(`[data-id="${item.id}"]`);
+            if (draggedElement) {
+                draggedElement.style.opacity = '0.7';
+                draggedElement.style.zIndex = '1000';
+                draggedElement.style.transform = `translateY(${diff}px)`; // Keep following finger
+            }
+            touchStartY = touch.clientY - diff; // Adjust reference to keep relative position smooth
+        }
+    }
+}
+
+function handleTouchEnd(e) {
+    if (!draggedElement) return;
+    draggedElement.style.opacity = '1';
+    draggedElement.style.transform = '';
+    draggedElement.style.zIndex = '';
+    draggedElement = null;
+    document.body.style.overflow = ''; // Restore scrolling
+    updateUI();
+}
+
+// Helper to get background color string
+function getZoneBg(power) {
+    const zone = getZone(power);
+    // Use opacity 0.2 for background
+    return zone.bg; // ZONES already has rgba(..., 0.2)
+}
+
+function renderSegmentsList() {
+    const list = document.getElementById('segmentsList');
+    list.innerHTML = '';
+    segments.forEach((s, index) => {
+        const div = document.createElement('div');
+        div.className = 'segment-item';
+        div.dataset.id = s.id;
+        div.dataset.index = index;
+
+        // Default Border Color
+        div.style.borderLeftColor = getZone(s.power || s.power_high || 0.5).color;
+
+        // Custom Background for Gradients
+        if (['Warmup', 'CoolDown', 'Ramp'].includes(s.type)) {
+            const startBg = getZoneBg(s.power_low);
+            const endBg = getZoneBg(s.power_high);
+            // Use linear-gradient, but we need to keep the border-left visible or consistent?
+            // Mobile style relies on border-left. Let's keep border-left but add gradient to background.
+            div.style.background = `linear-gradient(90deg, ${startBg}, ${endBg})`;
+        } else if (s.type === 'IntervalsBlock3') {
+            // Let's add gradient for Block3 too as a bonus/consistency if applicable, or keep it simple
+            // User asked for Ramp types specifically.
+        }
+
+        // Helper for horizontal input group
+        const mkInput = (label, val, field, type = 'number', unit = '') => `
+            <div class="seg-input-group">
+                <label>${label}</label>
+                <input type="${type}" value="${val}" onchange="updateSegment(${s.id}, '${field}', this.value)">
+                ${unit ? `<span class="unit-label">${unit}</span>` : ''}
+            </div>`;
+
+        let inputs = '';
+        if (s.type === 'SteadyState') {
+            inputs += mkInput('Dur', formatTime(s.duration), 'duration', 'text');
+            inputs += mkInput('PWR', Math.round(s.power * 100), 'power', 'number', '%');
+        } else if (['Warmup', 'CoolDown', 'Ramp'].includes(s.type)) {
+            inputs += mkInput('Dur', formatTime(s.duration), 'duration', 'text');
+            inputs += mkInput('Start', Math.round(s.power_low * 100), 'power_low', 'number', '%');
+            inputs += mkInput('End', Math.round(s.power_high * 100), 'power_high', 'number', '%');
+        } else if (s.type === 'IntervalsT') {
+            inputs += mkInput('Reps', s.repeat, 'repeat');
+            inputs += mkInput('On', formatTime(s.on_duration), 'on_duration', 'text');
+            inputs += mkInput('Pwr', Math.round(s.on_power * 100), 'on_power', 'number', '%');
+            inputs += mkInput('Off', formatTime(s.off_duration), 'off_duration', 'text');
+            inputs += mkInput('Pwr', Math.round(s.off_power * 100), 'off_power', 'number', '%');
+        } else if (s.type === 'IntervalsBlock3') {
+            inputs += mkInput('Reps', s.repeat, 'repeat', 'number');
+            inputs += `<div style="width:100%; height:1px; background:#444; margin:4px 0;"></div>`;
+            inputs += mkInput('D1', formatTime(s.dur1), 'dur1', 'text');
+            inputs += mkInput('P1', Math.round(s.pwr1 * 100), 'pwr1', 'number', '%');
+            inputs += `<div style="flex-basis:100%"></div>`;
+            inputs += mkInput('D2', formatTime(s.dur2), 'dur2', 'text');
+            inputs += mkInput('P2', Math.round(s.pwr2 * 100), 'pwr2', 'number', '%');
+            inputs += `<div style="flex-basis:100%"></div>`;
+            inputs += mkInput('D3', formatTime(s.dur3), 'dur3', 'text');
+            inputs += mkInput('P3', Math.round(s.pwr3 * 100), 'pwr3', 'number', '%');
+        }
+
+        let labelType = s.type;
+        if (s.type === 'SteadyState') {
+            const z = getZone(s.power);
+            // Infer Zone Number from index in ZONES array
+            const zIdx = ZONES.indexOf(z) + 1;
+            labelType = `Zone ${zIdx}`;
+        }
+
+        div.innerHTML = `
+            <div class="segment-header">
+                <span class="segment-type" style="display:flex; align-items:center;">
+                    <!-- Drag Handle Icon -->
+                    <span class="drag-handle-icon" style="margin-right:8px; color:#666; font-size:1.4rem; padding:0 10px 0 0; touch-action:none;">☰</span>
+                    ${labelType}
+                </span>
+                <div class="segment-actions">
+                    <button class="btn-icon" onclick="moveSegment(${s.id}, -1)">▲</button>
+                    <button class="btn-icon" onclick="moveSegment(${s.id}, 1)">▼</button>
+                    <button class="btn-icon" onclick="copySegment(${s.id})" title="Duplicate">❐</button>
+                    <button class="btn-icon" onclick="removeSegment(${s.id})">✕</button>
+                </div>
+            </div>
+            <div class="segment-details">${inputs}</div>
+        `;
+        list.appendChild(div);
+
+        // Attach touch listeners to the HEADER (which contains the handle)
+        // Note: The handleTouchStart will now filter for .drag-handle-icon
+        const header = div.querySelector('.segment-header');
+        header.addEventListener('touchstart', handleTouchStart, { passive: false });
+        header.addEventListener('touchmove', handleTouchMove, { passive: false });
+        header.addEventListener('touchend', handleTouchEnd);
+    });
+}
+
+// ZWO Generation (Simplified for Mobile)
+// ZWO Generation (Refactored)
+function generateZWO(workout) {
+    const name = workout.name || "Mobile Workout";
+    const author = workout.author || "Zwifter";
+    const description = workout.description || "";
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?><workout_file>\n`;
+    xml += `<author>${author}</author>\n`;
+    xml += `<name>${name}</name>\n`;
+    xml += `<description>${description}</description>\n`;
+    xml += `<sportType>bike</sportType>\n`;
+    xml += `<workout>\n`;
+
+    workout.segments.forEach(s => {
+        if (s.type === 'SteadyState') xml += `<SteadyState Duration="${s.duration}" Power="${s.power}"/>\n`;
+        else if (['Warmup', 'CoolDown', 'Ramp'].includes(s.type)) xml += `<${s.type} Duration="${s.duration}" PowerLow="${s.power_low}" PowerHigh="${s.power_high}"/>\n`;
+        else if (s.type === 'IntervalsT') xml += `<IntervalsT Repeat="${s.repeat}" OnDuration="${s.on_duration}" OffDuration="${s.off_duration}" OnPower="${s.on_power}" OffPower="${s.off_power}"/>\n`;
+        else if (s.type === 'IntervalsBlock3') {
+            for (let i = 0; i < s.repeat; i++) {
+                xml += `<SteadyState Duration="${s.dur1}" Power="${s.pwr1}"/>\n`;
+                xml += `<SteadyState Duration="${s.dur2}" Power="${s.pwr2}"/>\n`;
+                xml += `<SteadyState Duration="${s.dur3}" Power="${s.pwr3}"/>\n`;
+            }
+        }
+    });
+    xml += `</workout></workout_file>`;
+    return xml;
+}
+
+function triggerDownload(xml, filename) {
+    const blob = new Blob([xml], { type: "application/xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a); // Append for Firefox support
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+function saveWorkout() {
+    const workout = {
+        name: "Mobile Workout",
+        segments: segments
+    };
+    const xml = generateZWO(workout);
+    triggerDownload(xml, "workout.zwo");
+}
+
+function downloadLibraryWorkout(id) {
+    const item = STATIC_WORKOUTS.find(w => w.id == id);
+    if (!item) return;
+
+    const xml = generateZWO(item);
+    const filename = `${item.name.replace(/[^a-z0-9]/gi, '_')}.zwo`;
+    triggerDownload(xml, filename);
+}
+
+
+
+
+function loadFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const text = e.target.result;
+        // Simple regex parsing for ZWO (very basic support)
+        // ... (Skipping full parser implementation to keep it simple as per previous instruction/stub status)
+        alert("File loading not fully implemented in this mobile demo yet. Please use the Library.");
+    };
+    reader.readAsText(file);
+}
+
+// --- Workout Library (Static) ---
+
+function openLibrary() {
+    document.getElementById('libraryModal').style.display = 'flex';
+    renderLibrary();
+}
+
+function closeLibrary() {
+    document.getElementById('libraryModal').style.display = 'none';
+}
+
+function loadFromLibrary(id) {
+    const entry = STATIC_WORKOUTS.find(item => item.id == id); // Loose equality for consistency
+    if (entry) {
+        // Restore segments
+        segments = JSON.parse(JSON.stringify(entry.segments));
+        segments.forEach(s => s.id = Date.now() + Math.random());
+        updateUI();
+        closeLibrary();
+    }
+}
+
+function renderLibrary() {
+    const list = document.getElementById('libraryList');
+    list.innerHTML = '';
+
+    if (typeof STATIC_WORKOUTS === 'undefined' || STATIC_WORKOUTS.length === 0) {
+        list.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">No workouts found in workouts.js</div>';
+        return;
+    }
+
+    STATIC_WORKOUTS.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'lib-item';
+        // Calculate basic stats for display if not present
+        const segCount = item.segments ? item.segments.length : 0;
+        div.innerHTML = `
+            <div class="lib-info">
+                <div class="lib-name">${item.name}</div>
+                <div class="lib-date">${item.description || ''} • ${segCount} segments</div>
+            </div>
+            <div class="lib-actions">
+                <button class="lib-btn lib-load" onclick="loadFromLibrary('${item.id}')">Load</button>
+                <button class="lib-btn lib-dl" onclick="downloadLibraryWorkout('${item.id}')" style="background:#444; margin-left:5px;">DL</button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// --- Recommendation System Integration ---
+
+function openRecModal() {
+    document.getElementById('recommendModal').style.display = 'flex';
+    // Run default recommendation on open
+    runRecommendation();
+}
+
+function closeRecModal() {
+    document.getElementById('recommendModal').style.display = 'none';
+}
+
+function runRecommendation() {
+    const objective = document.getElementById('recObjective').value;
+    const maxDuration = parseInt(document.getElementById('recDuration').value);
+    const sourceInputs = document.getElementsByName('recSource');
+    let source = 'All';
+    for (let input of sourceInputs) {
+        if (input.checked) source = input.value;
+    }
+
+    const results = Recommender.recommend({
+        objective: objective,
+        maxDuration: maxDuration,
+        source: source
+    });
+
+    renderRecResults(results);
+}
+
+function renderRecResults(results) {
+    const container = document.getElementById('recResults');
+    container.innerHTML = '';
+
+    if (results.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">No workouts found matching criteria</div>';
+        return;
+    }
+
+    results.forEach(w => {
+        const div = document.createElement('div');
+        div.className = 'lib-item'; // Reuse library styling
+        // Tag badges
+        const tagsHtml = w.tags.map(t => `<span style="background:#444; padding:2px 6px; border-radius:4px; font-size:0.75rem; margin-right:4px;">${t}</span>`).join('');
+
+        div.innerHTML = `
+            <div class="lib-info">
+                <div class="lib-name">${w.name} <span style="font-size:0.8rem; color:var(--accent-color);">(${w.source})</span></div>
+                <div class="lib-date">⏱ ${Math.round(w.durationSec / 60)}m • TSS: ${w.tss}</div>
+                <div style="margin-top:4px; font-size:0.85rem; color:#ccc;">${w.description}</div>
+                <div style="margin-top:6px;">${tagsHtml}</div>
+            </div>
+            <div class="lib-actions">
+                <button class="lib-btn lib-load" onclick="loadRecommendedWorkout('${w.id}')">Load</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function loadRecommendedWorkout(id) {
+    const workout = BUILT_IN_WORKOUTS.find(w => w.id === id);
+    if (!workout) return;
+
+    // Deep copy segments
+    segments = JSON.parse(JSON.stringify(workout.segments));
+    // Add IDs
+    segments.forEach(s => s.id = Date.now() + Math.random());
+
+    updateUI();
+    closeRecModal();
+}
+
+</script>
+    </body>
+
+</html>
